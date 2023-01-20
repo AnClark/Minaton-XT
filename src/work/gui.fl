@@ -1,0 +1,457 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "dcf.h"} {private local
+} 
+
+decl {\#include "dco.h"} {private local
+} 
+
+decl {\#include "dca.h"} {private local
+} 
+
+decl {\#include "files.h"} {private local
+} 
+
+decl {\#include "main.h"} {private local
+} 
+
+decl {\#include <math.h>} {private local
+} 
+
+Function {make_window()} {open
+} {
+  Fl_Window {} {
+    label {Minaton Mono Synth v0.0.2 - By Nick Bailey - ThunderOx Software} open
+    xywh {22 62 910 610} type Double color 104 labelsize 12 visible
+  } {
+    Fl_Tile dco1_panel {
+      label {DCO 1} open
+      xywh {10 18 460 120} box GTK_ROUND_UP_BOX color 45 selection_color 0 labelcolor 7
+    } {}
+    Fl_Tile dco2_panel {
+      label {DCO 2} open
+      xywh {10 160 460 120} box GTK_ROUND_UP_BOX color 44 labelcolor 7 when 0
+    } {}
+    Fl_Tile dco3_panel {
+      label {DCO 3} open
+      xywh {10 300 460 120} box GTK_ROUND_UP_BOX color 44 labelcolor 7
+    } {}
+    Fl_Tile lfo1_panel {
+      label {LFO 1} open
+      xywh {480 20 350 120} box GTK_ROUND_UP_BOX color 44 selection_color 0 labelcolor 7
+    } {}
+    Fl_Tile lfo2_panel {
+      label {LFO 2} open
+      xywh {480 160 350 120} box GTK_ROUND_UP_BOX color 44 selection_color 0 labelcolor 7
+    } {}
+    Fl_Tile {} {
+      label FILTER open
+      xywh {10 440 460 120} box GTK_ROUND_UP_BOX color 44 selection_color 0 labelcolor 7
+    } {}
+    Fl_Tile {} {
+      label {ADSR 1} open
+      xywh {480 300 350 120} box GTK_ROUND_UP_BOX color 44 selection_color 0 labelcolor 7
+    } {}
+    Fl_Tile {} {
+      label {ADSR 2} open
+      xywh {480 440 350 120} box GTK_ROUND_UP_BOX color 44 selection_color 0 labelcolor 7
+    } {}
+    Fl_Button {} {
+      label TRIGGER
+      callback {trigger_envelope1();
+trigger_envelope2();}
+      xywh {10 570 80 30} box GTK_ROUND_UP_BOX color 43 labelsize 10
+    }
+    Fl_Button {} {
+      label RELEASE
+      callback {release_envelope1();
+release_envelope2();}
+      xywh {100 570 80 30} box GTK_ROUND_UP_BOX color 43 labelsize 10
+    }
+    Fl_Button legato_button {
+      label LEGATO
+      callback {toggle_legato();}
+      xywh {300 570 80 30} type Toggle box GTK_ROUND_UP_BOX color 43 labelsize 10
+    }
+    Fl_Button sync_button {
+      label {SYNC 1+2}
+      callback {toggle_sync();}
+      xywh {390 570 80 30} type Toggle box GTK_ROUND_UP_BOX color 43 labelsize 10
+    }
+    Fl_Value_Slider master_volume {
+      label VOLUME
+      xywh {850 320 30 260} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 10 labelcolor 7 minimum 1 maximum 500 step 0.1 value 80
+    }
+    Fl_Value_Slider midi_channel {
+      label {MIDI CHANNEL}
+      xywh {850 40 30 260} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 10 labelcolor 7 minimum 16 step 1 value 1
+    }
+    Fl_Button {} {
+      label {PATCH MANAGER}
+      callback {show_patch_window();}
+      xywh {190 570 100 30} box GTK_ROUND_UP_BOX color 43 labelsize 10
+    }
+    Fl_Dial inertia1 {
+      label INERTIA
+      callback {set_dco_inertia(0,inertia1->value());}
+      xywh {390 66 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum 0.5 maximum 0.001 step 0.001 value 0.5
+    }
+    Fl_Value_Slider pitch1 {
+      label {FINE TUNE}
+      callback {update_dco1_tuning();}
+      xywh {120 34 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 minimum -7 maximum 7 textsize 8
+    }
+    Fl_Button {} {
+      label CENTRE
+      callback {pitch1->value(0);
+update_dco1_tuning();}
+      xywh {370 40 70 20} box GTK_ROUND_UP_BOX color 47 labelsize 10
+    }
+    Fl_Value_Slider wave1 {
+      callback {set_dco_wave(0,wave1->value());
+update_dco1_tuning();}
+      xywh {120 74 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 align 4 maximum 4 step 1 value 1 textsize 9
+    }
+    Fl_Button active1 {
+      label ACTIVE
+      callback {if (active1->value())
+{
+	dco_on(0);
+}
+else
+{
+	dco_off(0);
+}}
+      xywh {40 38 70 20} type Toggle box GTK_ROUND_UP_BOX down_box PLASTIC_ROUND_DOWN_BOX color 47 selection_color 0 labelsize 9
+    }
+    Fl_Box {} {
+      image {work/sine-edit 2.png} xywh {150 90 40 44}
+    }
+    Fl_Box {} {
+      image {work/saw-edit6.png} xywh {190 98 40 30}
+    }
+    Fl_Box {} {
+      image {work/square-edit 2.png} xywh {230 98 40 30}
+    }
+    Fl_Box {} {
+      image {work/triangle-edit7.png} xywh {280 98 40 30}
+    }
+    Fl_Box {} {
+      image {work/noise.png} xywh {320 92 40 48}
+    }
+    Fl_Dial inertia2 {
+      label INERTIA
+      callback {set_dco_inertia(1,inertia2->value());}
+      xywh {390 208 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum 0.5 maximum 0.001 step 0.001 value 0.5
+    }
+    Fl_Value_Slider pitch2 {
+      label {FINE TUNE}
+      callback {update_dco2_tuning();}
+      xywh {120 176 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 minimum -7 maximum 7 textsize 8
+    }
+    Fl_Button {} {
+      label CENTRE
+      callback {pitch2->value(0);
+update_dco2_tuning();}
+      xywh {370 180 70 20} box GTK_ROUND_UP_BOX color 47 labelsize 10
+    }
+    Fl_Value_Slider wave2 {
+      callback {set_dco_wave(1,wave2->value());
+update_dco2_tuning();}
+      xywh {120 216 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 maximum 4 step 1 value 1 textsize 9
+    }
+    Fl_Button active2 {
+      label ACTIVE
+      callback {if (active2->value())
+{
+	dco_on(1);
+}
+else
+{
+	dco_off(1);
+}}
+      xywh {40 180 70 20} type Toggle box GTK_ROUND_UP_BOX down_box PLASTIC_ROUND_DOWN_BOX color 47 selection_color 0 labelsize 9
+    }
+    Fl_Box {} {
+      image {work/sine-edit 2.png} xywh {150 232 40 44}
+    }
+    Fl_Box {} {
+      image {work/saw-edit6.png} xywh {190 240 40 30}
+    }
+    Fl_Box {} {
+      image {work/square-edit 2.png} xywh {230 240 40 30}
+    }
+    Fl_Box {} {
+      image {work/triangle-edit7.png} xywh {280 240 40 30}
+    }
+    Fl_Box {} {
+      image {work/noise.png} xywh {320 232 40 48}
+    }
+    Fl_Dial inertia3 {
+      label INERTIA
+      callback {set_dco_inertia(2,inertia3->value());}
+      xywh {390 350 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum 0.5 maximum 0.001 step 0.001 value 0.5
+    }
+    Fl_Value_Slider pitch3 {
+      label {FINE TUNE}
+      callback {update_dco3_tuning();}
+      xywh {120 316 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 minimum -7 maximum 7 textsize 8
+    }
+    Fl_Button {} {
+      label CENTRE
+      callback {pitch3->value(0);
+update_dco3_tuning();}
+      xywh {370 320 70 20} box GTK_ROUND_UP_BOX color 47 labelsize 10
+    }
+    Fl_Value_Slider wave3 {
+      callback {set_dco_wave(2,wave3->value());
+update_dco3_tuning();}
+      xywh {120 356 240 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 maximum 4 step 1 value 1 textsize 9
+    }
+    Fl_Button active3 {
+      label ACTIVE
+      callback {if (active3->value())
+{
+	dco_on(2);
+}
+else
+{
+	dco_off(2);
+}}
+      xywh {40 320 70 20} type Toggle box GTK_ROUND_UP_BOX down_box PLASTIC_ROUND_DOWN_BOX color 47 selection_color 0 labelsize 9
+    }
+    Fl_Box {} {
+      image {work/sine-edit 2.png} xywh {150 378 40 38}
+    }
+    Fl_Box {} {
+      image {work/saw-edit6.png} xywh {190 376 40 40}
+    }
+    Fl_Box {} {
+      image {work/square-edit 2.png} xywh {230 376 40 40}
+    }
+    Fl_Box {} {
+      image {work/triangle-edit7.png} xywh {280 376 40 40}
+    }
+    Fl_Box {} {
+      image {work/noise.png} xywh {320 378 40 42}
+    }
+    Fl_Value_Slider freq {
+      label FREQUENCY
+      callback {set_dcf_frequency(freq->value());}
+      xywh {50 466 380 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 minimum -0.1 maximum 0.5 step 0.0001 textsize 9
+    }
+    Fl_Value_Slider res {
+      label RESONANCE
+      callback {set_dcf_resonance(res->value());}
+      xywh {50 506 380 24} type {Horz Knob} box PLASTIC_UP_BOX color 0 labelsize 10 minimum 0.1 maximum 2 step 0.001 textsize 9
+    }
+    Fl_Value_Slider wave4 {
+      callback {set_dco_wave(3,wave4->value());
+set_dco_frequency(3,lfo1speed->value());}
+      xywh {720 30 24 100} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 9 minimum 4 maximum 7 step 1 value 5 textsize 9
+    }
+    Fl_Value_Slider lfo1_dco1_pitch {
+      label {DCO 1}
+      callback {set_dco_lfo1_amount(0,lfo1_dco1_pitch->value());}
+      xywh {520 30 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo1_dco2_pitch {
+      label {DCO 2}
+      callback {set_dco_lfo1_amount(1,lfo1_dco2_pitch->value());}
+      xywh {560 30 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo1_dco3_pitch {
+      label {DCO 3}
+      callback {set_dco_lfo1_amount(2,lfo1_dco3_pitch->value());} selected
+      xywh {600 30 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo1_dcf {
+      label FILTER
+      callback {set_lfo1_dcf_amount(lfo1_dcf->value());}
+      xywh {640 30 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 8 maximum 0 step 0.001 textsize 9
+    }
+    Fl_Dial lfo1speed {
+      label SPEED
+      callback {set_dco_frequency(3,lfo1speed->value());}
+      xywh {760 60 40 40} type Line box GTK_ROUND_UP_BOX color 44 selection_color 0 labelsize 9 minimum 2 maximum 256 step 0.001 value 2
+    }
+    Fl_Box {} {
+      image {work/sine-edit 2.png} xywh {680 62 40 28}
+    }
+    Fl_Box {} {
+      image {work/saw-edit6.png} xywh {680 90 40 20}
+    }
+    Fl_Box {} {
+      image {work/square-edit 2.png} xywh {680 120 40 10}
+    }
+    Fl_Box {} {
+      image {work/noise.png} xywh {680 42 40 18}
+    }
+    Fl_Value_Slider wave5 {
+      callback {set_dco_wave(4,wave5->value());
+set_dco_frequency(4,lfo2speed->value());}
+      xywh {720 170 24 100} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 9 minimum 4 maximum 7 step 1 value 5 textsize 9
+    }
+    Fl_Value_Slider lfo2_dco1_pitch {
+      label {DCO 1}
+      callback {set_dco_lfo2_amount(0,lfo2_dco1_pitch->value());}
+      xywh {520 170 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo2_dco2_pitch {
+      label {DCO 2}
+      callback {set_dco_lfo2_amount(1,lfo2_dco2_pitch->value());}
+      xywh {560 170 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo2_dco3_pitch {
+      label {DCO 3}
+      callback {set_dco_lfo2_amount(2,lfo2_dco3_pitch->value());}
+      xywh {600 170 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 48 maximum 0 textsize 9
+    }
+    Fl_Value_Slider lfo2_dcf {
+      label FILTER
+      callback {set_lfo2_dcf_amount(lfo2_dcf->value());}
+      xywh {640 170 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 9 minimum 8 maximum 0 step 0.001 textsize 9
+    }
+    Fl_Dial lfo2speed {
+      label SPEED
+      callback {set_dco_frequency(4,lfo2speed->value());}
+      xywh {760 196 40 40} type Line box GTK_ROUND_UP_BOX color 44 selection_color 0 labelsize 10 minimum 2 maximum 256 step 0.001 value 2
+    }
+    Fl_Box {} {
+      image {work/sine-edit 2.png} xywh {680 202 40 28}
+    }
+    Fl_Box {} {
+      image {work/saw-edit6.png} xywh {680 230 40 20}
+    }
+    Fl_Box {} {
+      image {work/square-edit 2.png} xywh {680 260 40 10}
+    }
+    Fl_Box {} {
+      image {work/noise.png} xywh {680 182 40 18}
+    }
+    Fl_Value_Slider adsr_amp_amount1 {
+      label AMP
+      xywh {730 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 8 minimum 0.5 maximum 16 step 0.001 value 1 textsize 9
+    }
+    Fl_Value_Slider attack1 {
+      label ATTACK
+      callback {set_envelope1_attack(attack1->value());}
+      xywh {520 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 step 0.001 textsize 8
+    }
+    Fl_Value_Slider decay1 {
+      label DECAY
+      callback {set_envelope1_decay(decay1->value());}
+      xywh {560 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 maximum 30 step 0.001 value 1 textsize 8
+    }
+    Fl_Value_Slider sustain1 {
+      label SUSTAIN
+      callback {set_envelope1_sustain(sustain1->value());}
+      xywh {600 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 1 maximum 0 step 0.001 textsize 8
+    }
+    Fl_Value_Slider release1 {
+      label RELEASE
+      callback {set_envelope1_release(release1->value());}
+      xywh {640 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 maximum 30 step 0.0001 value 30 textsize 8
+    }
+    Fl_Value_Slider adsr_osc2_amount1 {
+      label OSC2
+      xywh {760 310 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 8 minimum 16 maximum 0 textsize 9
+    }
+    Fl_Value_Slider attack2 {
+      label ATTACK
+      callback {set_envelope2_attack(attack2->value());}
+      xywh {520 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 maximum 0.01 step 0.001 textsize 8
+    }
+    Fl_Value_Slider decay2 {
+      label DECAY
+      callback {set_envelope2_decay(decay2->value());}
+      xywh {560 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 maximum 30 step 1 value 1 textsize 8
+    }
+    Fl_Value_Slider sustain2 {
+      label SUSTAIN
+      callback {set_envelope2_sustain(sustain2->value());}
+      xywh {600 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 1 maximum 0 textsize 8
+    }
+    Fl_Value_Slider release2 {
+      label RELEASE
+      callback {set_envelope2_release(release2->value());}
+      xywh {640 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 0 labelsize 8 minimum 70 maximum 30 step 0.001 value 30 textsize 8
+    }
+    Fl_Value_Slider adsr_filter_amount2 {
+      label FILTER
+      xywh {730 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 8 minimum 1 maximum 16 value 1 textsize 9
+    }
+    Fl_Value_Slider adsr_osc3_amount2 {
+      label OSC3
+      xywh {760 450 24 90} type {Vert Knob} box PLASTIC_UP_BOX color 136 labelsize 8 minimum 16 maximum 0 textsize 9
+    }
+    Fl_Dial octave1 {
+      label OCTAVE
+      callback {update_dco1_tuning();}
+      xywh {60 68 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum -4 maximum 4 step 1
+    }
+    Fl_Dial octave2 {
+      label OCTAVE
+      callback {update_dco2_tuning();}
+      xywh {60 208 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum -4 maximum 4 step 1
+    }
+    Fl_Dial octave3 {
+      label OCTAVE
+      callback {update_dco3_tuning();}
+      xywh {60 348 32 32} type Line box GTK_ROUND_UP_BOX color 45 labelsize 10 minimum -4 maximum 4 step 1
+    }
+  }
+} 
+
+Function {patch_window()} {open
+} {
+  Fl_Window {} {
+    label {Patch Manager} open
+    xywh {28 182 570 490} type Double color 104 labelcolor 7 hide
+  } {
+    Fl_Group {} {open
+      xywh {20 20 520 435} box GTK_ROUND_UP_BOX color 44 labelcolor 7
+    } {
+      Fl_Browser patch_browser {
+        callback {int value = patch_browser->value();
+
+if (value)
+{
+	load_patch(patch_browser->text(value));
+}
+
+trigger_envelope1();
+trigger_envelope2();}
+        xywh {130 60 270 280} type Select color 0 labelsize 12 labelcolor 7 textsize 12 textcolor 7
+      }
+      Fl_Button {} {
+        label SAVE
+        callback {save_patch(save_name->value());
+show_patch_window();}
+        xywh {440 240 70 30} box GTK_ROUND_DOWN_BOX color 47 labelsize 10
+      }
+      Fl_Input save_name {
+        label {NEW PATCH NAME}
+        xywh {130 375 270 25} color 51 selection_color 104 labelsize 10 labelcolor 7 align 5 textsize 12
+      }
+      Fl_Button {} {
+        label TRIGGER
+        callback {trigger_envelope1();
+trigger_envelope2();}
+        xywh {410 110 70 30} box GTK_ROUND_UP_BOX color 47 labelsize 10
+      }
+      Fl_Button {} {
+        label RELEASE
+        callback {release_envelope1();
+release_envelope2();}
+        xywh {440 150 70 30} box GTK_ROUND_UP_BOX color 47 labelsize 10
+      }
+      Fl_Button {} {
+        label DELETE
+        xywh {420 280 70 30} box GTK_ROUND_UP_BOX color 47 labelsize 10
+      }
+    }
+  }
+} 

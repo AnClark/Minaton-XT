@@ -1,0 +1,116 @@
+# depslib dependency file v1.0
+1280956549 source:/home/nicksb/Programming/audio/jack/main.cpp
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<jack/jack.h>
+	<iostream>
+	<math.h>
+	<samplerate.h>
+	<sndfile.h>
+
+1280956549 source:/home/nicksb/Programming/jack/main.cpp
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<jack/jack.h>
+	<iostream>
+	<math.h>
+	<samplerate.h>
+	<sndfile.h>
+
+1322081706 source:/home/nicksb/Programming/nixsynth/main.cpp
+	"gui.h"
+	"dcf.h"
+	"dco.h"
+	"dca.h"
+	"files.h"
+	"jack.cpp"
+	<dirent.h>
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<jack/jack.h>
+	<iostream>
+	<math.h>
+	<samplerate.h>
+	<sndfile.h>
+
+1320624206 source:/home/nicksb/Programming/nixsynth/dcf.cpp
+	<math.h>
+	<iostream>
+	"dco.h"
+
+1320607127 /home/nicksb/Programming/nixsynth/dcf.h
+
+1322184390 source:/home/nicksb/Programming/nixsynth/dco.cpp
+	<samplerate.h>
+	<math.h>
+	<sndfile.h>
+	<iostream>
+	<string>
+	<vector>
+	<stdio.h>
+	<string.h>
+	"dco.h"
+	"dca.h"
+	"gui.h"
+
+1322179741 /home/nicksb/Programming/nixsynth/dco.h
+	<string>
+
+1321121751 source:/home/nicksb/Programming/nixsynth/dca.cpp
+	"gui.h"
+	<math.h>
+	<iostream>
+
+1321109347 /home/nicksb/Programming/nixsynth/dca.h
+
+1322185437 source:/home/nicksb/Programming/nixsynth/gui.cxx
+	"gui.h"
+	"dcf.h"
+	"dco.h"
+	"dca.h"
+	"files.h"
+	"main.h"
+	<math.h>
+	<FL/Fl_Image.H>
+
+1322185437 /home/nicksb/Programming/nixsynth/gui.h
+	<FL/Fl.H>
+	<FL/Fl_Double_Window.H>
+	<FL/Fl_Tile.H>
+	<FL/Fl_Button.H>
+	<FL/Fl_Value_Slider.H>
+	<FL/Fl_Dial.H>
+	<FL/Fl_Box.H>
+	<FL/Fl_Group.H>
+	<FL/Fl_Browser.H>
+	<FL/Fl_Input.H>
+
+1320715086 source:/home/nicksb/Programming/nixsynth/jack.cpp
+	"jack.hpp"
+
+1320715086 /home/nicksb/Programming/nixsynth/jack.cpp
+	"jack.hpp"
+
+1320714978 /home/nicksb/Programming/nixsynth/jack.hpp
+	<iostream>
+	<jack/jack.h>
+	<jack/midiport.h>
+
+1321125870 source:/home/nicksb/Programming/nixsynth/files.cpp
+	"gui.h"
+	"dcf.h"
+	"dco.h"
+	"dca.h"
+	<math.h>
+	<iostream>
+	<fstream>
+	<sstream>
+	<algorithm>
+
+1321096568 /home/nicksb/Programming/nixsynth/files.h
+
+1320958149 /home/nicksb/Programming/nixsynth/main.h
+

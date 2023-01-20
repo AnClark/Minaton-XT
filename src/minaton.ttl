@@ -1,0 +1,551 @@
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#>.
+@prefix doap: <http://usefulinc.com/ns/doap#>.
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix ll: <http://ll-plugins.nongnu.org/lv2/namespace#>.
+@prefix pg: <http://ll-plugins.nongnu.org/lv2/ext/portgroups#>.
+@prefix llext: <http://ll-plugins.nongnu.org/lv2/ext/>.
+@prefix guiext: <http://lv2plug.in/ns/extensions/ui#>.
+@prefix ev: <http://lv2plug.in/ns/ext/event#>.
+
+<http://nickbailey/minaton/out> a pg:StereoGroup.
+
+<http://nickbailey/minaton>
+  a lv2:Plugin, lv2:InstrumentPlugin;
+  lv2:binary <minaton.so>;
+  doap:name "Minaton LV2";
+  doap:license <http://usefulinc.com/doap/licenses/gpl>;
+  ll:pegName "p";
+ 
+  lv2:port [
+    a lv2:AudioPort, lv2:OutputPort;
+    lv2:index 0;
+    lv2:symbol "left_output";
+    lv2:name "Left output";
+    pg:membership [
+      pg:group <http://nickbailey/minaton/out>;
+      pg:role pg:leftChannel;
+    ];
+  ],
+
+  [
+    a lv2:AudioPort, lv2:OutputPort;
+    lv2:index 1;
+    lv2:symbol "right_output";
+    lv2:name "Right output";
+    pg:membership [
+      pg:group <http://nickbailey/minaton/out>;
+      pg:role pg:rightChannel;
+    ];
+ ],
+
+  [
+    a ev:EventPort, lv2:InputPort;
+    lv2:index 2;
+    ev:supportsEvent <http://lv2plug.in/ns/ext/midi#MidiEvent>;
+    lv2:symbol "midi_in";
+    lv2:name "MIDI input";
+  ],
+
+
+
+ [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 3;
+    lv2:symbol "frequency";
+    lv2:name "Frequency";
+    lv2:minimum -0.1;
+    lv2:maximum 0.5;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 4;
+    lv2:symbol "resonance";
+    lv2:name "Resonance";
+    lv2:minimum 0;
+    lv2:maximum 3.6;
+    lv2:default 1.6;
+  ],
+
+
+   [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 5;
+    lv2:symbol "active_one";
+    lv2:name "DCO Active 1";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 6;
+    lv2:symbol "octave_one";
+    lv2:name "DCO Octave 1";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 7;
+    lv2:symbol "finetune_one";
+    lv2:name "Finetune 1";
+    lv2:minimum -7;
+    lv2:maximum 7;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 8;
+    lv2:symbol "finetune_centre_one";
+    lv2:name "Finetune centre 1";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 9;
+    lv2:symbol "inertia_one";
+    lv2:name "Inertia 1";
+    lv2:minimum 0.001;
+    lv2:maximum 1;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 10;
+    lv2:symbol "wave_one";
+    lv2:name "DCO Waveform 1";
+    lv2:minimum 0;
+    lv2:maximum 4;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 11;
+    lv2:symbol "active_two";
+    lv2:name "DCO Active 2";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 12;
+    lv2:symbol "octave_two";
+    lv2:name "DCO Octave 2";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 13;
+    lv2:symbol "finetune_two";
+    lv2:name "Finetune 2";
+    lv2:minimum -7;
+    lv2:maximum 7;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 14;
+    lv2:symbol "finetune_centre_two";
+    lv2:name "Finetune centre 2";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 15;
+    lv2:symbol "inertia_two";
+    lv2:name "Inertia 2";
+    lv2:minimum 0.01;
+    lv2:maximum 1;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 16;
+    lv2:symbol "wave_two";
+    lv2:name "DCO Wave 2";
+    lv2:minimum 0;
+    lv2:maximum 4;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 17;
+    lv2:symbol "active_three";
+    lv2:name "DCO Active 3";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 18;
+    lv2:symbol "octave_three";
+    lv2:name "DCO Octave 3";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 19;
+    lv2:symbol "finetune_three";
+    lv2:name "Finetune 3";
+    lv2:minimum -7;
+    lv2:maximum 7;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 20;
+    lv2:symbol "finetune_centre_three";
+    lv2:name "Finetune centre 3";
+    lv2:minimum -4;
+    lv2:maximum 4;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 21;
+    lv2:symbol "inertia_three";
+    lv2:name "Inertia 3";
+    lv2:minimum 0.01;
+    lv2:maximum 1;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 22;
+    lv2:symbol "wave_three";
+    lv2:name "DCO Waveform 3";
+    lv2:minimum 0;
+    lv2:maximum 4;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 23;
+    lv2:symbol "patches";
+    lv2:name "Patches";
+    lv2:minimum 0;
+    lv2:maximum 1024;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 24;
+    lv2:symbol "legato";
+    lv2:name "Legato";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 25;
+    lv2:symbol "sync";
+    lv2:name "Sync";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 26;
+    lv2:symbol "master_volume";
+    lv2:name "Master volume";
+    lv2:minimum 5;
+    lv2:maximum 100;
+    lv2:default 80;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 27;
+    lv2:symbol "midi_channel";
+    lv2:name "MIDI channel";
+    lv2:minimum 1;
+    lv2:maximum 16;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 28;
+    lv2:symbol "lfo1_dco1_pitch";
+    lv2:name "Route LFO1 to DCO1 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 29;
+    lv2:symbol "lfo1_dco2_pitch";
+    lv2:name "Route LFO1 to DCO2 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 30;
+    lv2:symbol "lfo1_dco3_pitch";
+    lv2:name "Route LFO1 to DCO3 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 31;
+    lv2:symbol "lfo1_dcf";
+    lv2:name "Route LFO1 to DCF";
+    lv2:minimum 0;
+    lv2:maximum 8;
+    lv2:default 0;
+  ],
+
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 32;
+    lv2:symbol "lfo1_wave";
+    lv2:name "LFO one waveform";
+    lv2:minimum 4;
+    lv2:maximum 7;
+    lv2:default 5;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 33;
+    lv2:symbol "lfo1_speed";
+    lv2:name "LFO one speed";
+    lv2:minimum 2;
+    lv2:maximum 256;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 34;
+    lv2:symbol "lfo2_dco1_pitch";
+    lv2:name "Route LFO1 to DCO1 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 35;
+    lv2:symbol "lfo2_dco2_pitch";
+    lv2:name "Route LFO1 to DCO2 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 36;
+    lv2:symbol "lfo2_dco3_pitch";
+    lv2:name "Route LFO1 to DCO3 Pitch";
+    lv2:minimum 0;
+    lv2:maximum 48;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 37;
+    lv2:symbol "lfo2_dcf";
+    lv2:name "Route LFO1 to DCF";
+    lv2:minimum 0;
+    lv2:maximum 8;
+    lv2:default 0;
+  ],
+
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 38;
+    lv2:symbol "lfo2_wave";
+    lv2:name "LFO one waveform";
+    lv2:minimum 4;
+    lv2:maximum 7;
+    lv2:default 5;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 39;
+    lv2:symbol "lfo2_speed";
+    lv2:name "LFO one speed";
+    lv2:minimum 2;
+    lv2:maximum 256;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 40;
+    lv2:symbol "attack_one";
+    lv2:name "DCA envelope attack 1";
+    lv2:minimum 0;
+    lv2:maximum 70;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 41;
+    lv2:symbol "decay_one";
+    lv2:name "DCA envelope decay 1";
+    lv2:minimum 30;
+    lv2:maximum 70;
+    lv2:default 30;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 42;
+    lv2:symbol "sustain_one";
+    lv2:name "DCA envelope sustain 1";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 43;
+    lv2:symbol "release_one";
+    lv2:name "DCA envelope release 1";
+    lv2:minimum 30;
+    lv2:maximum 70;
+    lv2:default 30;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 44;
+    lv2:symbol "adsr1_amp_amount";
+    lv2:name "DCA1 routed to amp";
+    lv2:minimum 0.5;
+    lv2:maximum 16;
+    lv2:default 0.5;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 45;
+    lv2:symbol "adsr1_osc2_amount";
+    lv2:name "DCA1 routed to oscillator2 pitch";
+    lv2:minimum 0;
+    lv2:maximum 16;
+    lv2:default 0;
+  ],
+
+ [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 46;
+    lv2:symbol "attack_two";
+    lv2:name "DCA1 envelope attack";
+    lv2:minimum 0;
+    lv2:maximum 70;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 47;
+    lv2:symbol "decay_two";
+    lv2:name "DCA2 envelope decay";
+    lv2:minimum 30;
+    lv2:maximum 70;
+    lv2:default 30;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 48;
+    lv2:symbol "sustain_two";
+    lv2:name "DCA2 envelope sustain";
+    lv2:minimum 0;
+    lv2:maximum 1;
+    lv2:default 0;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 49;
+    lv2:symbol "release_two";
+    lv2:name "DCA2 envelope release";
+    lv2:minimum 30;
+    lv2:maximum 70;
+    lv2:default 30;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 50;
+    lv2:symbol "adsr2_dcf_amount";
+    lv2:name "DCA2 routed to DCF";
+    lv2:minimum 1;
+    lv2:maximum 16;
+    lv2:default 1;
+  ],
+
+  [
+    a lv2:ControlPort, lv2:InputPort;
+    lv2:index 51;
+    lv2:symbol "adsr2_osc3_amount";
+    lv2:name "DCA2 routed to oscillator3 pitch";
+    lv2:minimum 0;
+    lv2:maximum 16;
+    lv2:default 0;
+  ].
+
+	
+
+
+
+	
+
+

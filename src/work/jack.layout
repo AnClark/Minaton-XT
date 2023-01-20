@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="dca.cpp" open="1" top="0" tabpos="5">
+		<Cursor position="4659" topLine="209" />
+	</File>
+	<File name="dca.h" open="1" top="0" tabpos="7">
+		<Cursor position="534" topLine="0" />
+	</File>
+	<File name="dcf.cpp" open="1" top="0" tabpos="6">
+		<Cursor position="508" topLine="22" />
+	</File>
+	<File name="dcf.h" open="1" top="0" tabpos="4">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="dco.cpp" open="1" top="1" tabpos="2">
+		<Cursor position="2930" topLine="109" />
+	</File>
+	<File name="dco.h" open="1" top="0" tabpos="3">
+		<Cursor position="207" topLine="0" />
+	</File>
+	<File name="files.cpp" open="1" top="0" tabpos="10">
+		<Cursor position="6498" topLine="235" />
+	</File>
+	<File name="files.h" open="1" top="0" tabpos="11">
+		<Cursor position="28" topLine="0" />
+	</File>
+	<File name="gui.cxx" open="1" top="0" tabpos="8">
+		<Cursor position="45820" topLine="1141" />
+	</File>
+	<File name="gui.h" open="1" top="0" tabpos="9">
+		<Cursor position="211" topLine="0" />
+	</File>
+	<File name="main.cpp" open="1" top="0" tabpos="1">
+		<Cursor position="2745" topLine="97" />
+	</File>
+</CodeBlocks_layout_file>
