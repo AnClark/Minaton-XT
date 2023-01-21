@@ -37,13 +37,13 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
         delay = 0;
     }
 
-    if (fParameters[PARAM_ACTIVE_ONE]) {
+    if (fSynthesizer->active1) {
         mix1 = fSynthesizer->dco_cycle(0);
     }
-    if (fParameters[PARAM_ACTIVE_TWO]) {
+    if (fSynthesizer->active2) {
         mix2 = fSynthesizer->dco_cycle(1);
     }
-    if (fParameters[PARAM_ACTIVE_THREE]) {
+    if (fSynthesizer->active3) {
         mix3 = fSynthesizer->dco_cycle(2);
     }
 

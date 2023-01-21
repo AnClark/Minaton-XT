@@ -98,6 +98,10 @@ void MinatonPlugin::sampleRateChanged(double newSampleRate)
 
 void MinatonPlugin::_applySynthParameters()
 {
+    fSynthesizer->active1 = fParameters[PARAM_ACTIVE_ONE];
+    fSynthesizer->active2 = fParameters[PARAM_ACTIVE_TWO];
+    fSynthesizer->active3 = fParameters[PARAM_ACTIVE_THREE];
+
     fSynthesizer->master_volume = fParameters[PARAM_MASTER_VOLUME]; // p(p_master_volume)[0];
     fSynthesizer->set_legato(fParameters[PARAM_LEGATO]);
     fSynthesizer->set_sync_mode(fParameters[PARAM_SYNC]);
@@ -144,17 +148,17 @@ void MinatonPlugin::_applySynthParameters()
     fSynthesizer->master_frequency = fParameters[PARAM_FREQUENCY] / 9;
     fSynthesizer->master_resonance = fParameters[PARAM_RESONANCE] / 4;
 
-    if (fParameters[PARAM_ACTIVE_ONE]) {
+    if (fSynthesizer->active1) {
         fSynthesizer->octave1 = fParameters[PARAM_OCTAVE_ONE];
         fSynthesizer->pitch1 = fParameters[PARAM_FINETUNE_ONE];
     }
 
-    if (fParameters[PARAM_ACTIVE_TWO]) {
+    if (fSynthesizer->active2) {
         fSynthesizer->pitch2 = fParameters[PARAM_FINETUNE_TWO];
         fSynthesizer->octave2 = fParameters[PARAM_OCTAVE_TWO];
     }
 
-    if (fParameters[PARAM_ACTIVE_THREE]) {
+    if (fSynthesizer->active3) {
         fSynthesizer->octave3 = fParameters[PARAM_OCTAVE_THREE];
         fSynthesizer->pitch3 = fParameters[PARAM_FINETUNE_THREE];
     }
