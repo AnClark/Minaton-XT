@@ -844,3 +844,12 @@ void minaton_synth::set_lfo2_dcf_amount(float value)
 {
     lfo2_amount = value;
 }
+
+//=========================================================
+//-- FILE ROUTINES
+//=========================================================
+
+void minaton_synth::set_bundle_path(const char* new_bundle_path)
+{
+    this->bundle_path = new_bundle_path;
+}

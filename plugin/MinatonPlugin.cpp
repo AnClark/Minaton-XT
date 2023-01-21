@@ -7,6 +7,9 @@ START_NAMESPACE_DISTRHO
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
 {
+    // TODO: Integrate waves as internal resources
+    fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
+
     fSynthesizer->init();
     fSynthesizer->init_dcas();
     fSynthesizer->init_dcf();

@@ -222,5 +222,7 @@ public:
     int save_patch(string);
     int load_patch(string);
 
+    void set_bundle_path(const char*);
+
 protected:
 };
