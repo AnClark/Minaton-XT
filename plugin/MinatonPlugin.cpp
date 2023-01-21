@@ -87,6 +87,17 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
     //{
     //		control_delay = 0;
 
+    // Check if no oscillators enabled or volume at zero.
+    // Once true, clear ring buffer and return.
+    static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
+    if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
+        for (int x = 0; x < frames; x++) {
+            outputs[0][x] = 0;
+            outputs[1][x] = 0;
+        }
+        return;
+    }
+
     for (unsigned int x = 0; x < frames; x++) {
         _processAudioFrame(outputs[0], outputs[1], x);
     }
