@@ -1,5 +1,29 @@
 #include "MinatonPlugin.h"
 
+static float calculate_volume_division_factor(float volume_param)
+{
+    // Sanity check. Volume out of range will corrupt the synthesizer!
+    // Input volume range: [5, 100].
+    if (volume_param > 100) {
+        volume_param = 100;
+    } else if (volume_param < 5) {
+        volume_param = 5;
+    }
+
+    // Transform volume parameter to actual volume division factor.
+    // Conversion conforms to this procedure:
+    //     1. Let x = volume param, y = target volume div factor.
+    //     2. (x, y) should satisfy this map:
+    //        * When x = 5,   y = 95
+    //        * When x = 100, y = 5
+    //     3. So we get two points in rectangular coordinate system.
+    //        Then we calculate the linear function via this formula:
+    //          (y-y1) / (y2-y1) = (x-x1) / (x2-x1), x1≠x2，y1≠y2.
+    //
+    // The expression below conforms to the result function.
+    return (-90.0f / 95.0f) * volume_param + (9475.0f / 95.0f);
+}
+
 void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t frame_index)
 {
     float mix1 = 0, mix2 = 0, mix3 = 0, delay;
@@ -23,8 +47,10 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
         mix3 = fSynthesizer->dco_cycle(2);
     }
 
-    float mixer_out_left = (mix1 + mix2) / fSynthesizer->master_volume;
-    float mixer_out_right = (mix2 + mix3) / fSynthesizer->master_volume;
+    float volume_div_factor = calculate_volume_division_factor(fSynthesizer->master_volume);
+
+    float mixer_out_left = (mix1 + mix2) / volume_div_factor;
+    float mixer_out_right = (mix2 + mix3) / volume_div_factor;
 
     // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
 
