@@ -1,6 +1,6 @@
 #pragma once
 
-#include "synth.hpp"
+#include "synth_dpf.hpp"
 
 #include "DistrhoPlugin.hpp"
 #include "MinatonParams.h"
@@ -11,7 +11,7 @@ START_NAMESPACE_DISTRHO
 
 class MinatonPlugin : public Plugin {
     double fSampleRate = getSampleRate();
-    std::unique_ptr<minaton_synth> fSynthesizer = std::make_unique<minaton_synth>();
+    std::unique_ptr<minaton_synth_dpf> fSynthesizer = std::make_unique<minaton_synth_dpf>();
 
     float fParameters[MinatonParamId::PARAM_COUNT];
 

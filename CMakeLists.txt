@@ -31,6 +31,7 @@ dpf_add_plugin (${PROJECT_NAME}
     TARGETS vst2 vst3 lv2 clap
     FILES_DSP
         src/synth.cpp
+        src/synth_dpf.cpp
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
         plugin/MinatonParams.cpp
