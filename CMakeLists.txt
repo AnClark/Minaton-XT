@@ -30,6 +30,10 @@ add_custom_command (
 add_library (${PROJECT_NAME}_waves STATIC ${SOURCES_WAVES})
 
 
+#
+# Build plug-ins
+#
+
 dpf_add_plugin (${PROJECT_NAME}
     TARGETS vst2 vst3 lv2 clap
     FILES_DSP
