@@ -24,6 +24,29 @@ static float calculate_volume_division_factor(float volume_param)
     return (-90.0f / 95.0f) * volume_param + (9475.0f / 95.0f);
 }
 
+static void mixer_out_sanitize(float& mixer_out)
+{
+    // Check for illegal sample data value: NaN or out-of-bound.
+    // Then replace the error value with a fallback one.
+    //
+    // This sanitizer is adapted from src/work/main.cpp.
+
+    if (isnan(mixer_out)) {
+        // The most common situation is getting an NaN
+        mixer_out = -0.984375;
+    } else if (mixer_out <= -1.25f) {
+        // The second common one is out of left boundary
+        mixer_out = -0.984375;
+    } else if (mixer_out >= 1.25f) {
+        // Out of right boundary.
+        mixer_out = 0.984375;
+    } else {
+        // Seems that the line below is bypassed by Thunderox originally
+        // mixer_out = 1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
+        return;
+    }
+}
+
 void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t frame_index)
 {
     float mix1 = 0, mix2 = 0, mix3 = 0, delay;
@@ -51,6 +74,11 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     float mixer_out_left = (mix1 + mix2) / volume_div_factor;
     float mixer_out_right = (mix2 + mix3) / volume_div_factor;
+
+    // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
+    // Even a illeagal value still corrupts the synthesizer!
+    mixer_out_sanitize(mixer_out_left);
+    mixer_out_sanitize(mixer_out_right);
 
     // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
 
