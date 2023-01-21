@@ -112,6 +112,11 @@ private:
     // Internal helpers
 
     void _applySynthParameters();
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Processors
+
+    void _processAudioFrame(float* audio_l, float* audio_r, uint32_t frame_index);
     void _processMidi(const uint8_t* data, const uint32_t size);
 
     // ----------------------------------------------------------------------------------------------------------------

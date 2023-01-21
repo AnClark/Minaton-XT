@@ -12,6 +12,7 @@ dpf_add_plugin (${PROJECT_NAME}
     FILES_DSP
         src/synth.cpp
         plugin/MinatonPlugin.cpp
+        plugin/MinatonProcess.cpp
         plugin/MinatonParams.cpp
 )
 
