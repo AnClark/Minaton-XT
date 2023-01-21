@@ -27,6 +27,9 @@ add_custom_command (
     VERBATIM
 )
 
+add_library (${PROJECT_NAME}_waves STATIC ${SOURCES_WAVES})
+
+
 dpf_add_plugin (${PROJECT_NAME}
     TARGETS vst2 vst3 lv2 clap
     FILES_DSP
@@ -35,7 +38,6 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
         plugin/MinatonParams.cpp
-        ${SOURCES_WAVES}
 )
 
 target_include_directories (${PROJECT_NAME} PUBLIC 
@@ -43,6 +45,8 @@ target_include_directories (${PROJECT_NAME} PUBLIC
     src/
     ${GENERATED_WAVES_DIR}
 )
+
+target_link_libraries (${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_waves)
 
 # TODO: Use pkg-config to find out those two libraries
 target_link_libraries (${PROJECT_NAME} PRIVATE samplerate sndfile)
