@@ -35,13 +35,18 @@ add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 #
 
 dpf_add_plugin (${PROJECT_NAME}
-    TARGETS vst2 vst3 lv2 clap
+    TARGETS vst2 vst3 lv2 clap jack
+    UI_TYPE opengl
     FILES_DSP
         src/synth.cpp
         src/synth_dpf.cpp
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
         plugin/MinatonParams.cpp
+    FILES_UI
+        plugin/MinatonUI.cpp
+        plugin/MinatonUIHelper.cpp
+        plugin/MinatonArtwork.cpp
 )
 
 target_include_directories (${PROJECT_NAME} PUBLIC 
