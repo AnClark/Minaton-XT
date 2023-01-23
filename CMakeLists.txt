@@ -14,21 +14,21 @@ add_subdirectory (dpf)
 set (GENERATED_WAVES_DIR ${PROJECT_BINARY_DIR}/generated_waves)
 make_directory (${GENERATED_WAVES_DIR})
 
-find_package(Python3 REQUIRED)
+# Binary-to-C converter from Dear ImGui
+add_executable (binary_to_compressed_c utils/binary_to_compressed_c.cpp)
+target_link_options (binary_to_compressed_c PRIVATE -static)
 
-set (SOURCES_WAVES
-    ${GENERATED_WAVES_DIR}/minaton_waves.cpp
-    ${GENERATED_WAVES_DIR}/minaton_waves.h
-)
+set (WAVES_DIR ${PROJECT_SOURCE_DIR}/src/waves)
+set (GENERATED_WAVE_HEADER ${GENERATED_WAVES_DIR}/minaton_waves.hpp)
 
 add_custom_command (
-    OUTPUT ${SOURCES_WAVES}
-    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/utils/res2c_mod.py minaton_waves wave_ ${PROJECT_SOURCE_DIR}/src/waves ${GENERATED_WAVES_DIR}
+    OUTPUT ${GENERATED_WAVE_HEADER}
+    COMMAND ${PROJECT_BINARY_DIR}/binary_to_compressed_c${CMAKE_EXECUTABLE_SUFFIX} ${WAVES_DIR} minaton_wave > ${GENERATED_WAVE_HEADER}
+    DEPENDS binary_to_compressed_c
     VERBATIM
 )
 
-add_library (${PROJECT_NAME}_waves STATIC ${SOURCES_WAVES})
-
+add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 
 #
 # Build plug-ins
@@ -50,7 +50,7 @@ target_include_directories (${PROJECT_NAME} PUBLIC
     ${GENERATED_WAVES_DIR}
 )
 
-target_link_libraries (${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_waves)
+add_dependencies (${PROJECT_NAME}-dsp generate_waves)
 
 # TODO: Use pkg-config to find out those two libraries
 target_link_libraries (${PROJECT_NAME} PRIVATE samplerate sndfile)

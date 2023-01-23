@@ -1,7 +1,34 @@
 #include "synth_dpf.hpp"
 #include "minaton_waves.hpp"
+#include "stb_decompress.h"
 
 #include <cstring>
+
+//=========================================================
+//-- Embedded data definition
+//=========================================================
+
+namespace minaton_waves {
+
+static const unsigned char* wave_440Hz_sineData = decode_compressed_file_array(minaton_wave_440Hz_sine_wav_compressed_data, minaton_wave_440Hz_sine_wav_compressed_size);
+static const unsigned char* wave_440Hz_sawData = decode_compressed_file_array(minaton_wave_440Hz_saw_wav_compressed_data, minaton_wave_440Hz_saw_wav_compressed_size);
+static const unsigned char* wave_440Hz_squareData = decode_compressed_file_array(minaton_wave_440Hz_square_wav_compressed_data, minaton_wave_440Hz_square_wav_compressed_size);
+static const unsigned char* wave_440Hz_triangleData = decode_compressed_file_array(minaton_wave_440Hz_triangle_wav_compressed_data, minaton_wave_440Hz_triangle_wav_compressed_size);
+
+static const unsigned char* wave_1Hz_sineData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
+static const unsigned char* wave_1Hz_sawData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
+static const unsigned char* wave_1Hz_squareData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
+
+const unsigned int wave_440Hz_sineDataSize = 2442;
+const unsigned int wave_440Hz_sawDataSize = 2444;
+const unsigned int wave_440Hz_squareDataSize = 1244;
+const unsigned int wave_440Hz_triangleDataSize = 1244;
+
+const unsigned int wave_1Hz_sawDataSize = 88246;
+const unsigned int wave_1Hz_sineDataSize = 88246;
+const unsigned int wave_1Hz_squareDataSize = 88246;
+
+}
 
 //=========================================================
 //-- Synth implementation for DPF
