@@ -13,8 +13,6 @@ class MinatonPlugin : public Plugin {
     double fSampleRate = getSampleRate();
     std::unique_ptr<minaton_synth_dpf> fSynthesizer = std::make_unique<minaton_synth_dpf>();
 
-    float fParameters[MinatonParamId::PARAM_COUNT];
-
     // Minaton note key data
     unsigned char m_key;
     double m_rate;
@@ -111,7 +109,8 @@ private:
     // ----------------------------------------------------------------------------------------------------------------
     // Internal helpers
 
-    void _applySynthParameters();
+    float _obtainSynthParameter(MinatonParamId index) const;
+    void _applySynthParameter(MinatonParamId index, float value);
 
     // ----------------------------------------------------------------------------------------------------------------
     // Processors

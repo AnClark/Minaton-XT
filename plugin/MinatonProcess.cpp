@@ -111,7 +111,7 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
 
         // program change
         if (status == 0xc0) {
-            if (fParameters[PARAM_ACTIVE_ONE] || fParameters[PARAM_ACTIVE_TWO] || fParameters[PARAM_ACTIVE_THREE])
+            if (fSynthesizer->active1 || fSynthesizer->active2 || fSynthesizer->active3)
                 d_stderr2("[Unimplemented] program change = %d", key);
             continue;
         }
@@ -119,7 +119,7 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
         // channel aftertouch
         if (status == 0xd0) {
             const float pre = float(key) / 127.0f;
-            if (fParameters[PARAM_ACTIVE_ONE] || fParameters[PARAM_ACTIVE_TWO] || fParameters[PARAM_ACTIVE_THREE])
+            if (fSynthesizer->active1 || fSynthesizer->active2 || fSynthesizer->active3)
                 d_stderr2("[Unimplemented] Channel aftertouch pressure = %d", pre);
             continue;
         }
@@ -141,7 +141,7 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
             m_key = key;
             m_period = m_rate * 4.0 / 440.0f; // LV2::key2hz(m_key);
 
-            if (last_note == -1 || fParameters[PARAM_LEGATO] == 0) {
+            if (last_note == -1 || fSynthesizer->get_legato() == 0) {
                 fSynthesizer->trigger_envelope1();
                 fSynthesizer->trigger_envelope2();
             }

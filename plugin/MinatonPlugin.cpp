@@ -60,13 +60,12 @@ void MinatonPlugin::initParameter(uint32_t index, Parameter& parameter)
 
 float MinatonPlugin::getParameterValue(uint32_t index) const
 {
-    return fParameters[index];
+    return _obtainSynthParameter(MinatonParamId(index));
 }
 
 void MinatonPlugin::setParameterValue(uint32_t index, float value)
 {
-    fParameters[index] = value;
-    _applySynthParameters();
+    _applySynthParameter(MinatonParamId(index), value);
 }
 
 void MinatonPlugin::activate()
@@ -107,71 +106,313 @@ void MinatonPlugin::sampleRateChanged(double newSampleRate)
 {
 }
 
-void MinatonPlugin::_applySynthParameters()
+float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
 {
-    fSynthesizer->active1 = fParameters[PARAM_ACTIVE_ONE];
-    fSynthesizer->active2 = fParameters[PARAM_ACTIVE_TWO];
-    fSynthesizer->active3 = fParameters[PARAM_ACTIVE_THREE];
+    switch (index) {
+    // OSC activation
+    case PARAM_ACTIVE_ONE:
+        return fSynthesizer->active1;
+    case PARAM_ACTIVE_TWO:
+        return fSynthesizer->active2;
+    case PARAM_ACTIVE_THREE:
+        return fSynthesizer->active3;
 
-    fSynthesizer->master_volume = fParameters[PARAM_MASTER_VOLUME]; // p(p_master_volume)[0];
-    fSynthesizer->set_legato(fParameters[PARAM_LEGATO]);
-    fSynthesizer->set_sync_mode(fParameters[PARAM_SYNC]);
+    // Master output
+    case PARAM_MASTER_VOLUME:
+        return fSynthesizer->master_volume;
+    case PARAM_LEGATO:
+        return fSynthesizer->get_legato();
+    case PARAM_SYNC:
+        return fSynthesizer->get_sync_mode();
 
-    fSynthesizer->dco_wave[0] = fParameters[PARAM_WAVE_ONE];
-    fSynthesizer->dco_inertia[0] = fParameters[PARAM_INERTIA_ONE];
+    // DCO Wave 1
+    case PARAM_WAVE_ONE:
+        return fSynthesizer->dco_wave[0];
+    case PARAM_INERTIA_ONE:
+        return fSynthesizer->dco_inertia[0];
 
-    fSynthesizer->dco_wave[1] = fParameters[PARAM_WAVE_TWO];
-    fSynthesizer->dco_inertia[1] = fParameters[PARAM_INERTIA_TWO];
+    // DCO Wave 2
+    case PARAM_WAVE_TWO:
+        return fSynthesizer->dco_wave[1];
+    case PARAM_INERTIA_TWO:
+        return fSynthesizer->dco_inertia[1];
 
-    fSynthesizer->dco_wave[2] = fParameters[PARAM_WAVE_THREE];
-    fSynthesizer->dco_inertia[2] = fParameters[PARAM_INERTIA_THREE];
+    // DCO Wave 3
+    case PARAM_WAVE_THREE:
+        return fSynthesizer->dco_wave[2];
+    case PARAM_INERTIA_THREE:
+        return fSynthesizer->dco_inertia[2];
 
-    fSynthesizer->set_freq(3, fParameters[PARAM_LFO1_SPEED]);
-    fSynthesizer->dco_wave[3] = fParameters[PARAM_LFO1_WAVE];
+    // LFO1 Speed
+    case PARAM_LFO1_SPEED:
+        return fSynthesizer->dco_frequency[3];
+    case PARAM_LFO1_WAVE:
+        return fSynthesizer->dco_wave[3];
 
-    fSynthesizer->set_freq(4, fParameters[PARAM_LFO2_SPEED]);
-    fSynthesizer->dco_wave[4] = fParameters[PARAM_LFO2_WAVE];
+    // LFO2 Speed
+    case PARAM_LFO2_SPEED:
+        return fSynthesizer->dco_frequency[4];
+    case PARAM_LFO2_WAVE:
+        return fSynthesizer->dco_wave[4];
 
-    fSynthesizer->dco_lfo1_amount[0] = fParameters[PARAM_LFO1_DCO1_PITCH];
-    fSynthesizer->dco_lfo1_amount[1] = fParameters[PARAM_LFO1_DCO2_PITCH];
-    fSynthesizer->dco_lfo1_amount[2] = fParameters[PARAM_LFO1_DCO3_PITCH];
-    fSynthesizer->lfo1_amount = fParameters[PARAM_LFO1_DCF];
+    // LFO1 to DCOs
+    case PARAM_LFO1_DCO1_PITCH:
+        return fSynthesizer->dco_lfo1_amount[0];
+    case PARAM_LFO1_DCO2_PITCH:
+        return fSynthesizer->dco_lfo1_amount[1];
+    case PARAM_LFO1_DCO3_PITCH:
+        return fSynthesizer->dco_lfo1_amount[2];
+    case PARAM_LFO1_DCF:
+        return fSynthesizer->lfo1_amount;
 
-    fSynthesizer->dco_lfo2_amount[0] = fParameters[PARAM_LFO2_DCO1_PITCH];
-    fSynthesizer->dco_lfo2_amount[1] = fParameters[PARAM_LFO2_DCO2_PITCH];
-    fSynthesizer->dco_lfo2_amount[2] = fParameters[PARAM_LFO2_DCO3_PITCH];
-    fSynthesizer->lfo2_amount = fParameters[PARAM_LFO2_DCF];
+    // LFO2 to DCOs
+    case PARAM_LFO2_DCO1_PITCH:
+        return fSynthesizer->dco_lfo2_amount[0];
+    case PARAM_LFO2_DCO2_PITCH:
+        return fSynthesizer->dco_lfo2_amount[1];
+    case PARAM_LFO2_DCO3_PITCH:
+        return fSynthesizer->dco_lfo2_amount[2];
+    case PARAM_LFO2_DCF:
+        return fSynthesizer->lfo2_amount;
 
-    fSynthesizer->envelope1.attack = fParameters[PARAM_ATTACK_ONE];
-    fSynthesizer->envelope1.decay = fParameters[PARAM_DECAY_ONE];
-    fSynthesizer->envelope1.sustain = fParameters[PARAM_SUSTAIN_ONE];
-    fSynthesizer->envelope1.release = fParameters[PARAM_RELEASE_ONE];
-    fSynthesizer->adsr_amp_amount1 = fParameters[PARAM_ADSR1_AMP_AMOUNT];
-    fSynthesizer->adsr_osc2_amount1 = fParameters[PARAM_ADSR1_OSC2_AMOUNT];
+    // ADSR envelope 1
+    case PARAM_ATTACK_ONE:
+        return fSynthesizer->envelope1.attack;
+    case PARAM_DECAY_ONE:
+        return fSynthesizer->envelope1.decay;
+    case PARAM_SUSTAIN_ONE:
+        return fSynthesizer->envelope1.sustain;
+    case PARAM_RELEASE_ONE:
+        return fSynthesizer->envelope1.release;
+    case PARAM_ADSR1_AMP_AMOUNT:
+        return fSynthesizer->adsr_amp_amount1;
+    case PARAM_ADSR1_OSC2_AMOUNT:
+        return fSynthesizer->adsr_osc2_amount1;
 
-    fSynthesizer->envelope2.attack = fParameters[PARAM_ATTACK_TWO];
-    fSynthesizer->envelope2.decay = fParameters[PARAM_DECAY_TWO];
-    fSynthesizer->envelope2.sustain = fParameters[PARAM_SUSTAIN_TWO];
-    fSynthesizer->envelope2.release = fParameters[PARAM_RELEASE_TWO];
-    fSynthesizer->adsr_filter_amount2 = fParameters[PARAM_ADSR2_DCF_AMOUNT];
-    fSynthesizer->adsr_osc3_amount2 = fParameters[PARAM_ADSR2_OSC3_AMOUNT];
+    // ADSR envelope 2
+    case PARAM_ATTACK_TWO:
+        return fSynthesizer->envelope2.attack;
+    case PARAM_DECAY_TWO:
+        return fSynthesizer->envelope2.decay;
+    case PARAM_SUSTAIN_TWO:
+        return fSynthesizer->envelope2.sustain;
+    case PARAM_RELEASE_TWO:
+        return fSynthesizer->envelope2.release;
+    case PARAM_ADSR2_DCF_AMOUNT:
+        return fSynthesizer->adsr_filter_amount2;
+    case PARAM_ADSR2_OSC3_AMOUNT:
+        return fSynthesizer->adsr_osc3_amount2;
 
-    fSynthesizer->master_frequency = fParameters[PARAM_FREQUENCY] / 9;
-    fSynthesizer->master_resonance = fParameters[PARAM_RESONANCE] / 4;
+    // Master frequency / resonance
+    case PARAM_FREQUENCY:
+        return fSynthesizer->master_frequency * 9;
+    case PARAM_RESONANCE:
+        return fSynthesizer->master_resonance * 4;
 
-    if (fSynthesizer->active1) {
-        fSynthesizer->octave1 = fParameters[PARAM_OCTAVE_ONE];
-        fSynthesizer->pitch1 = fParameters[PARAM_FINETUNE_ONE];
+    // OSC1 octave / pitch
+    case PARAM_OCTAVE_ONE:
+        return fSynthesizer->octave1;
+    case PARAM_FINETUNE_ONE:
+        return fSynthesizer->pitch1;
+
+    // OSC2 octave / pitch
+    case PARAM_OCTAVE_TWO:
+        return fSynthesizer->octave2;
+    case PARAM_FINETUNE_TWO:
+        return fSynthesizer->pitch2;
+
+    // OSC3 octave / pitch
+    case PARAM_OCTAVE_THREE:
+        return fSynthesizer->octave3;
+    case PARAM_FINETUNE_THREE:
+        return fSynthesizer->pitch3;
+
+    // Unused parameters
+    case PARAM_FINETUNE_CENTRE_ONE:
+    case PARAM_FINETUNE_CENTRE_TWO:
+    case PARAM_FINETUNE_CENTRE_THREE:
+    case PARAM_PATCHES:
+    case PARAM_MIDI_CHANNEL:
+    case PARAM_COUNT:
+        break;
     }
 
-    if (fSynthesizer->active2) {
-        fSynthesizer->pitch2 = fParameters[PARAM_FINETUNE_TWO];
-        fSynthesizer->octave2 = fParameters[PARAM_OCTAVE_TWO];
-    }
+    return 0.0f;
+}
 
-    if (fSynthesizer->active3) {
-        fSynthesizer->octave3 = fParameters[PARAM_OCTAVE_THREE];
-        fSynthesizer->pitch3 = fParameters[PARAM_FINETUNE_THREE];
+void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
+{
+    switch (index) {
+    // OSC activation
+    case PARAM_ACTIVE_ONE:
+        fSynthesizer->active1 = value;
+        break;
+    case PARAM_ACTIVE_TWO:
+        fSynthesizer->active2 = value;
+        break;
+    case PARAM_ACTIVE_THREE:
+        fSynthesizer->active3 = value;
+        break;
+
+    // Master output
+    case PARAM_MASTER_VOLUME:
+        fSynthesizer->master_volume = value;
+        break;
+    case PARAM_LEGATO:
+        fSynthesizer->set_legato(value);
+        break;
+    case PARAM_SYNC:
+        fSynthesizer->set_sync_mode(value);
+        break;
+
+    // DCO Wave 1
+    case PARAM_WAVE_ONE:
+        fSynthesizer->dco_wave[0] = value;
+        break;
+    case PARAM_INERTIA_ONE:
+        fSynthesizer->dco_inertia[0] = value;
+        break;
+
+    // DCO Wave 2
+    case PARAM_WAVE_TWO:
+        fSynthesizer->dco_wave[1] = value;
+        break;
+    case PARAM_INERTIA_TWO:
+        fSynthesizer->dco_inertia[1] = value;
+        break;
+
+    // DCO Wave 3
+    case PARAM_WAVE_THREE:
+        fSynthesizer->dco_wave[2] = value;
+        break;
+    case PARAM_INERTIA_THREE:
+        fSynthesizer->dco_inertia[2] = value;
+        break;
+
+    // LFO1 Speed
+    case PARAM_LFO1_SPEED:
+        fSynthesizer->set_freq(3, value);
+        break;
+    case PARAM_LFO1_WAVE:
+        fSynthesizer->dco_wave[3] = value;
+        break;
+
+    // LFO2 Speed
+    case PARAM_LFO2_SPEED:
+        fSynthesizer->set_freq(4, value);
+        break;
+    case PARAM_LFO2_WAVE:
+        fSynthesizer->dco_wave[4] = value;
+        break;
+
+    // LFO1 to DCOs
+    case PARAM_LFO1_DCO1_PITCH:
+        fSynthesizer->dco_lfo1_amount[0] = value;
+        break;
+    case PARAM_LFO1_DCO2_PITCH:
+        fSynthesizer->dco_lfo1_amount[1] = value;
+        break;
+    case PARAM_LFO1_DCO3_PITCH:
+        fSynthesizer->dco_lfo1_amount[2] = value;
+        break;
+    case PARAM_LFO1_DCF:
+        fSynthesizer->lfo1_amount = value;
+        break;
+
+    // LFO2 to DCOs
+    case PARAM_LFO2_DCO1_PITCH:
+        fSynthesizer->dco_lfo2_amount[0] = value;
+        break;
+    case PARAM_LFO2_DCO2_PITCH:
+        fSynthesizer->dco_lfo2_amount[1] = value;
+        break;
+    case PARAM_LFO2_DCO3_PITCH:
+        fSynthesizer->dco_lfo2_amount[2] = value;
+        break;
+    case PARAM_LFO2_DCF:
+        fSynthesizer->lfo2_amount = value;
+        break;
+
+    // ADSR envelope 1
+    case PARAM_ATTACK_ONE:
+        fSynthesizer->envelope1.attack = value;
+        break;
+    case PARAM_DECAY_ONE:
+        fSynthesizer->envelope1.decay = value;
+        break;
+    case PARAM_SUSTAIN_ONE:
+        fSynthesizer->envelope1.sustain = value;
+        break;
+    case PARAM_RELEASE_ONE:
+        fSynthesizer->envelope1.release = value;
+        break;
+    case PARAM_ADSR1_AMP_AMOUNT:
+        fSynthesizer->adsr_amp_amount1 = value;
+        break;
+    case PARAM_ADSR1_OSC2_AMOUNT:
+        fSynthesizer->adsr_osc2_amount1 = value;
+        break;
+
+    // ADSR envelope 2
+    case PARAM_ATTACK_TWO:
+        fSynthesizer->envelope2.attack = value;
+        break;
+    case PARAM_DECAY_TWO:
+        fSynthesizer->envelope2.decay = value;
+        break;
+    case PARAM_SUSTAIN_TWO:
+        fSynthesizer->envelope2.sustain = value;
+        break;
+    case PARAM_RELEASE_TWO:
+        fSynthesizer->envelope2.release = value;
+        break;
+    case PARAM_ADSR2_DCF_AMOUNT:
+        fSynthesizer->adsr_filter_amount2 = value;
+        break;
+    case PARAM_ADSR2_OSC3_AMOUNT:
+        fSynthesizer->adsr_osc3_amount2 = value;
+        break;
+
+    // Master frequency / resonance
+    case PARAM_FREQUENCY:
+        fSynthesizer->master_frequency = value / 9;
+        break;
+    case PARAM_RESONANCE:
+        fSynthesizer->master_resonance = value / 4;
+        break;
+
+    // OSC1 octave / pitch
+    case PARAM_OCTAVE_ONE:
+        fSynthesizer->octave1 = value;
+        break;
+    case PARAM_FINETUNE_ONE:
+        fSynthesizer->pitch1 = value;
+        break;
+
+    // OSC2 octave / pitch
+    case PARAM_OCTAVE_TWO:
+        fSynthesizer->octave2 = value;
+        break;
+    case PARAM_FINETUNE_TWO:
+        fSynthesizer->pitch2 = value;
+        break;
+
+    // OSC3 octave / pitch
+    case PARAM_OCTAVE_THREE:
+        fSynthesizer->octave3 = value;
+        break;
+    case PARAM_FINETUNE_THREE:
+        fSynthesizer->pitch3 = value;
+        break;
+
+    // Unused parameters
+    case PARAM_FINETUNE_CENTRE_ONE:
+    case PARAM_FINETUNE_CENTRE_TWO:
+    case PARAM_FINETUNE_CENTRE_THREE:
+    case PARAM_PATCHES:
+    case PARAM_MIDI_CHANNEL:
+    case PARAM_COUNT:
+        break;
     }
 }
 
