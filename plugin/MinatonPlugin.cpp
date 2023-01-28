@@ -37,6 +37,7 @@ MinatonPlugin::MinatonPlugin()
 
 MinatonPlugin::~MinatonPlugin()
 {
+    fSynthesizer->cleanup();
 }
 
 void MinatonPlugin::initParameter(uint32_t index, Parameter& parameter)
