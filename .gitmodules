@@ -1,3 +1,6 @@
 [submodule "dpf"]
 	path = dpf
 	url = https://github.com/DISTRHO/DPF.git
+[submodule "vendor/libsamplerate"]
+	path = vendor/libsamplerate
+	url = https://github.com/libsndfile/libsamplerate
