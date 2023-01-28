@@ -33,6 +33,8 @@ MinatonPlugin::MinatonPlugin()
     fSynthesizer->release_envelope2();
     fSynthesizer->envelope1.level = 0;
     fSynthesizer->envelope2.level = 0;
+
+    sampleRateChanged(getSampleRate());
 }
 
 MinatonPlugin::~MinatonPlugin()
@@ -105,6 +107,11 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 
 void MinatonPlugin::sampleRateChanged(double newSampleRate)
 {
+    fSampleRate = newSampleRate;
+
+    for (int i = 0; i < 6; i++) {
+        fSynthesizer->resample_wave(i, fSampleRate);
+    }
 }
 
 float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const

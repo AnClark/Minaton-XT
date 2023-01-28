@@ -115,6 +115,30 @@ int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t s
     return number_of_waves - 1;
 }
 
+void minaton_synth_dpf::resample_wave(int wave_number, float new_sample_rate)
+{
+    float buffer[4096];
+
+#if 1 // Plan A
+    src_reset(src_test);
+    mySampleData.data_in = waves_sample[wave_number];
+    mySampleData.input_frames = waves_sfinfo[wave_number].frames;
+    mySampleData.data_out = buffer;
+    mySampleData.output_frames = waves_sfinfo[wave_number].frames;
+    mySampleData.src_ratio = new_sample_rate / 44100.0f;
+    src_process(src_test, &mySampleData);
+#else // Plan B
+    // resampler = speex_resampler_init(1, 44100, int(new_sample_rate), 10, &error_sc);
+    resampler = speex_resampler_init(waves_sfinfo[wave_number].channels, waves_sfinfo[wave_number].samplerate, new_sample_rate, 1, &error_sc);
+
+    spx_uint32_t in_len = waves_sfinfo[wave_number].frames;
+    spx_uint32_t out_len = in_len * int(new_sample_rate) / waves_sfinfo[wave_number].samplerate;
+    speex_resampler_process_float(resampler, 0, waves_sample[wave_number], &in_len, buffer, &out_len);
+#endif
+
+    memcpy(waves_sample[wave_number], buffer, 4096 * sizeof(float));
+}
+
 //=========================================================
 //-- Accessor for embedded waves
 //=========================================================

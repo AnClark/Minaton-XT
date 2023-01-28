@@ -4,6 +4,8 @@
 
 #include "synth.hpp"
 
+#include "speex/speex_resampler.h"
+
 //////////////////////// REFERENCES ////////////////////////
 // - sf_virtual_io usages is refered from Stickman-project
 //   (https://github.com/TheLusitanianKing/Stickman-project)
@@ -37,6 +39,12 @@ public:
     void init();
     int add_wave(string, const unsigned char*, size_t size);
 
+    // Resampler functions
+    void resample_wave(int wave_number, float new_sample_rate);
+
 private:
     Memory m_memory;
+
+    // This is Plan B
+    SpeexResamplerState *resampler;
 };

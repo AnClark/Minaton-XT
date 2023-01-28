@@ -58,4 +58,4 @@ target_include_directories (${PROJECT_NAME} PUBLIC
 add_dependencies (${PROJECT_NAME}-dsp generate_waves)
 
 # TODO: Use pkg-config to find out those two libraries
-target_link_libraries (${PROJECT_NAME} PRIVATE samplerate sndfile)
+target_link_libraries (${PROJECT_NAME} PRIVATE samplerate sndfile speexdsp)
