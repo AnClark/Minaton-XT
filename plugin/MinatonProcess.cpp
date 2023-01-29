@@ -151,10 +151,14 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
         }
         // note off
         else if (status == 0x80 || (status == 0x90 && value == 0)) {
-            m_key = -1;
-            fSynthesizer->release_envelope1();
-            fSynthesizer->release_envelope2();
-            last_note = -1;
+            m_key = key;
+
+            if (m_key == last_note) {
+                fSynthesizer->release_envelope1();
+                fSynthesizer->release_envelope2();
+
+                last_note = -1;
+            }
         }
         // key pressure/poly.aftertouch
         else if (status == 0xa0) {
