@@ -106,8 +106,8 @@ void scan_files(const std::string dir_path, std::vector<std::string>& filenames)
 
     do {
         if (findData.attrib & _A_SUBDIR
-            && strcmp(findData.name, ".") == 0
-            && strcmp(findData.name, "..") == 0) // If sub directory or "."/".." detected, ignore
+            || strcmp(findData.name, ".") == 0
+            || strcmp(findData.name, "..") == 0) // If sub directory or "."/".." detected, ignore
             continue;
         else
             filenames.push_back(std::string(findData.name));
