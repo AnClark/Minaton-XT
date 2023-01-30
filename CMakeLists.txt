@@ -42,11 +42,12 @@ dpf_add_plugin (${PROJECT_NAME}
         src/synth_dpf.cpp
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
-        plugin/MinatonParams.cpp
     FILES_UI
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
         plugin/MinatonArtwork.cpp
+    FILES_COMMON
+        plugin/MinatonParams.cpp
 )
 
 target_include_directories (${PROJECT_NAME} PUBLIC 
