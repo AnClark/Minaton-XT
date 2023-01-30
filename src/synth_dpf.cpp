@@ -16,8 +16,8 @@ static const unsigned char* wave_440Hz_squareData = decode_compressed_file_array
 static const unsigned char* wave_440Hz_triangleData = decode_compressed_file_array(minaton_wave_440Hz_triangle_wav_compressed_data, minaton_wave_440Hz_triangle_wav_compressed_size);
 
 static const unsigned char* wave_1Hz_sineData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
-static const unsigned char* wave_1Hz_sawData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
-static const unsigned char* wave_1Hz_squareData = decode_compressed_file_array(minaton_wave_1Hz_sine_wav_compressed_data, minaton_wave_1Hz_sine_wav_compressed_size);
+static const unsigned char* wave_1Hz_sawData = decode_compressed_file_array(minaton_wave_1Hz_saw_wav_compressed_data, minaton_wave_1Hz_saw_wav_compressed_size);
+static const unsigned char* wave_1Hz_squareData = decode_compressed_file_array(minaton_wave_1Hz_square_wav_compressed_data, minaton_wave_1Hz_square_wav_compressed_size);
 
 const unsigned int wave_440Hz_sineDataSize = 2442;
 const unsigned int wave_440Hz_sawDataSize = 2444;
