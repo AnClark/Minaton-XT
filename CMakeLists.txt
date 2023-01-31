@@ -97,6 +97,7 @@ dpf_add_plugin (${PROJECT_NAME}
         src/synth_dpf.cpp
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
+        plugin/MinatonParamAccess.cpp
     FILES_UI
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
