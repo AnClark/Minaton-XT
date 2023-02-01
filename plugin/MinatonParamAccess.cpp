@@ -189,6 +189,7 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
         break;
     case PARAM_LFO1_WAVE:
         fSynthesizer->dco_wave[3] = value;
+        fSynthesizer->set_freq(3, fSynthesizer->get_dco_frequency(3));
         break;
 
     // LFO2 Speed
@@ -197,6 +198,7 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
         break;
     case PARAM_LFO2_WAVE:
         fSynthesizer->dco_wave[4] = value;
+        fSynthesizer->set_freq(4, fSynthesizer->get_dco_frequency(4));
         break;
 
     // LFO1 to DCOs
