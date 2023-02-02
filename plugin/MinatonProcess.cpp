@@ -75,8 +75,8 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     float volume_div_factor = calculate_volume_division_factor(fSynthesizer->master_volume);
 
-    float mixer_out_left = (mix1 + mix2) / volume_div_factor;
-    float mixer_out_right = (mix2 + mix3) / volume_div_factor;
+    float mixer_out_left = (fSynthesizer->mix_out(0, CHANNEL_LEFT, mix1) + fSynthesizer->mix_out(1, CHANNEL_LEFT, mix2) + fSynthesizer->mix_out(2, CHANNEL_LEFT, mix3)) / volume_div_factor;
+    float mixer_out_right = (fSynthesizer->mix_out(0, CHANNEL_RIGHT, mix1) + fSynthesizer->mix_out(1, CHANNEL_RIGHT, mix2) + fSynthesizer->mix_out(2, CHANNEL_RIGHT, mix3)) / volume_div_factor;
 
     // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
     // Even a illeagal value still corrupts the synthesizer!
