@@ -121,6 +121,16 @@ float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
     case PARAM_FINETUNE_THREE:
         return fSynthesizer->pitch3;
 
+    // Output mode
+    case PARAM_OUTPUT_MODE:
+        return fSynthesizer->get_output_mode();
+    case PARAM_DCO1_OUTPUT_CHANNEL:
+        return fSynthesizer->get_dco_output_channel(0);
+    case PARAM_DCO2_OUTPUT_CHANNEL:
+        return fSynthesizer->get_dco_output_channel(1);
+    case PARAM_DCO3_OUTPUT_CHANNEL:
+        return fSynthesizer->get_dco_output_channel(2);
+
     // Unused parameters
     case PARAM_FINETUNE_CENTRE_ONE:
     case PARAM_FINETUNE_CENTRE_TWO:
@@ -299,6 +309,20 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
         break;
     case PARAM_FINETUNE_THREE:
         fSynthesizer->pitch3 = value;
+        break;
+
+    // Output mode
+    case PARAM_OUTPUT_MODE:
+        fSynthesizer->set_output_mode(value);
+        break;
+    case PARAM_DCO1_OUTPUT_CHANNEL:
+        fSynthesizer->set_dco_output_channel(0, minaton_channel_mode(value));
+        break;
+    case PARAM_DCO2_OUTPUT_CHANNEL:
+        fSynthesizer->set_dco_output_channel(1, minaton_channel_mode(value));
+        break;
+    case PARAM_DCO3_OUTPUT_CHANNEL:
+        fSynthesizer->set_dco_output_channel(2, minaton_channel_mode(value));
         break;
 
     // Unused parameters

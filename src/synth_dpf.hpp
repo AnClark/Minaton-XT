@@ -10,6 +10,21 @@
 ////////////////////////////////////////////////////////////
 
 //=========================================================
+//-- Constants
+//=========================================================
+
+enum minaton_channel_mode {
+    CHANNEL_LEFT,
+    CHANNEL_RIGHT,
+    CHANNEL_L_AND_R
+};
+
+enum minaton_output_mode {
+    OUTPUT_STEREO,
+    OUTPUT_MONO
+};
+
+//=========================================================
 //-- Accessor for embedded waves
 //
 //   Required by libsndfile API sf_open_virtual().
@@ -37,6 +52,17 @@ public:
     void init();
     int add_wave(string, const unsigned char*, size_t size);
 
+    void set_output_mode(bool mode) { output_mode = minaton_output_mode(mode); }
+    minaton_output_mode get_output_mode() { return output_mode; }
+
+    void set_dco_output_channel(int dco_number, minaton_channel_mode channel);
+    minaton_channel_mode get_dco_output_channel(int dco_number);
+
 private:
     Memory m_memory;
+
+    minaton_output_mode output_mode; // true: stereo; false: mono
+    minaton_channel_mode dco1_output_channel;
+    minaton_channel_mode dco2_output_channel;
+    minaton_channel_mode dco3_output_channel;
 };

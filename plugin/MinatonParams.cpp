@@ -51,6 +51,10 @@ static struct MinatonParamDefinition minaton_params[MinatonParamId::PARAM_COUNT]
     { "release_two", "DCA2 envelope release", 30, 70, 30, PARAM_FLOAT },
     { "adsr2_dcf_amount", "DCA2 routed to DCF", 1, 16, 1, PARAM_FLOAT },
     { "adsr2_osc3_amount", "DCA2 routed to oscillator3 pitch", 0, 16, 0, PARAM_FLOAT },
+    { "output_mode", "Master output mode", 0, 1, 0, PARAM_BOOL },
+    { "dco1_output_channel", "DCO1 output channel", 0, 2, 0, PARAM_INT },
+    { "dco2_output_channel", "DCO2 output channel", 0, 2, 2, PARAM_INT },
+    { "dco3_output_channel", "DCO3 output channel", 0, 2, 1, PARAM_INT }
 };
 
 const char* MinatonParams::paramName(MinatonParamId index)
