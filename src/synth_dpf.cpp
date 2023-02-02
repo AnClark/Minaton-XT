@@ -115,6 +115,38 @@ int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t s
     return number_of_waves - 1;
 }
 
+void minaton_synth_dpf::set_dco_output_channel(int dco_number, minaton_channel_mode channel)
+{
+    switch (dco_number) {
+    case 0:
+        dco1_output_channel = channel;
+        break;
+    case 1:
+        dco2_output_channel = channel;
+        break;
+    case 2:
+        dco3_output_channel = channel;
+        break;
+    }
+}
+
+minaton_channel_mode minaton_synth_dpf::get_dco_output_channel(int dco_number)
+{
+    switch (dco_number) {
+    case 0:
+        return dco1_output_channel;
+        break;
+    case 1:
+        return dco2_output_channel;
+        break;
+    case 2:
+        return dco3_output_channel;
+        break;
+    }
+
+    return CHANNEL_L_AND_R;
+}
+
 //=========================================================
 //-- Accessor for embedded waves
 //=========================================================
