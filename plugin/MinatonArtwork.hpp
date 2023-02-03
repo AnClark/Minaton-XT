@@ -10,6 +10,16 @@ namespace MinatonArtwork
     const unsigned int backWidth    = 658;
     const unsigned int backHeight   = 595;
 
+    extern const char* mix_mode_labelData;
+    const unsigned int mix_mode_labelDataSize = 26076;
+    const unsigned int mix_mode_labelWidth    = 123;
+    const unsigned int mix_mode_labelHeight   = 53;
+
+    extern const char* mono_stereo_labelData;
+    const unsigned int mono_stereo_labelDataSize = 29952;
+    const unsigned int mono_stereo_labelWidth    = 104;
+    const unsigned int mono_stereo_labelHeight   = 72;
+
     extern const char* newknobData;
     const unsigned int newknobDataSize = 7056;
     const unsigned int newknobWidth    = 42;
@@ -40,10 +50,20 @@ namespace MinatonArtwork
     const unsigned int switch_offWidth    = 46;
     const unsigned int switch_offHeight   = 50;
 
+    extern const char* switch_off_nolightData;
+    const unsigned int switch_off_nolightDataSize = 9200;
+    const unsigned int switch_off_nolightWidth    = 46;
+    const unsigned int switch_off_nolightHeight   = 50;
+
     extern const char* switch_onData;
     const unsigned int switch_onDataSize = 9200;
     const unsigned int switch_onWidth    = 46;
     const unsigned int switch_onHeight   = 50;
+
+    extern const char* switch_on_nolightData;
+    const unsigned int switch_on_nolightDataSize = 9200;
+    const unsigned int switch_on_nolightWidth    = 46;
+    const unsigned int switch_on_nolightHeight   = 50;
 
     extern const char* volknobData;
     const unsigned int volknobDataSize = 40000;
