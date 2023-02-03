@@ -1,5 +1,9 @@
 #include "MinatonPlugin.h"
 
+// Check if a DCO should output to specified channel
+#define DCO_L_OUT(id) fSynthesizer->get_dco_output_channel(id) == CHANNEL_LEFT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R
+#define DCO_R_OUT(id) fSynthesizer->get_dco_output_channel(id) == CHANNEL_RIGHT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R
+
 static float calculate_volume_division_factor(float volume_param)
 {
     // Sanity check. Volume out of range will corrupt the synthesizer!
@@ -75,8 +79,8 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     float volume_div_factor = calculate_volume_division_factor(fSynthesizer->master_volume);
 
-    float mixer_out_left = (fSynthesizer->mix_out(0, CHANNEL_LEFT, mix1) + fSynthesizer->mix_out(1, CHANNEL_LEFT, mix2) + fSynthesizer->mix_out(2, CHANNEL_LEFT, mix3)) / volume_div_factor;
-    float mixer_out_right = (fSynthesizer->mix_out(0, CHANNEL_RIGHT, mix1) + fSynthesizer->mix_out(1, CHANNEL_RIGHT, mix2) + fSynthesizer->mix_out(2, CHANNEL_RIGHT, mix3)) / volume_div_factor;
+    float mixer_out_left = ((DCO_L_OUT(0) ? mix1 : 0.0f) + (DCO_L_OUT(1) ? mix2 : 0.0f) + (DCO_L_OUT(2) ? mix3 : 0.0f)) / volume_div_factor;
+    float mixer_out_right = ((DCO_R_OUT(0) ? mix1 : 0.0f) + (DCO_R_OUT(1) ? mix2 : 0.0f) + (DCO_R_OUT(2) ? mix3 : 0.0f)) / volume_div_factor;
 
     // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
     // Even a illeagal value still corrupts the synthesizer!

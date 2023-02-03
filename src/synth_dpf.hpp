@@ -47,8 +47,6 @@ public:
     void init();
     int add_wave(string, const unsigned char*, size_t size);
 
-    float mix_out(int dco_number, minaton_channel_mode channel, float& mix_in);
-
     void set_output_mode(bool mode) { output_mode = mode; }
     bool get_output_mode() { return output_mode; }
 

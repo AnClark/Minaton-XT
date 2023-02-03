@@ -115,26 +115,6 @@ int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t s
     return number_of_waves - 1;
 }
 
-float minaton_synth_dpf::mix_out(int dco_number, minaton_channel_mode channel, float& mix_in)
-{
-    switch (dco_number) {
-    case 0:
-        if (dco1_output_channel == channel || dco1_output_channel == CHANNEL_L_AND_R)
-            return mix_in;
-        break;
-    case 1:
-        if (dco2_output_channel == channel || dco2_output_channel == CHANNEL_L_AND_R)
-            return mix_in;
-        break;
-    case 2:
-        if (dco3_output_channel == channel || dco3_output_channel == CHANNEL_L_AND_R)
-            return mix_in;
-        break;
-    }
-
-    return 0.0f;
-}
-
 void minaton_synth_dpf::set_dco_output_channel(int dco_number, minaton_channel_mode channel)
 {
     switch (dco_number) {
