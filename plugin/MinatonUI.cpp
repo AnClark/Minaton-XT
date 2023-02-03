@@ -16,6 +16,11 @@ MinatonUI::MinatonUI()
     , fSliderBackgroundDco(Art::slider_background_dcoData, Art::slider_background_dcoWidth, Art::slider_background_dcoHeight, kImageFormatBGRA)
     , fSliderBackgroundEnv(Art::slider_background_envData, Art::slider_background_envWidth, Art::slider_background_envHeight, kImageFormatBGRA)
     , fSliderBackgroundLfo(Art::slider_background_lfoData, Art::slider_background_lfoWidth, Art::slider_background_lfoHeight, kImageFormatBGRA)
+    , fSwitchNoLightImage_ON(Art::switch_on_nolightData, Art::switch_on_nolightWidth, Art::switch_on_nolightHeight, kImageFormatBGRA)
+    , fSwitchNoLightImage_OFF(Art::switch_off_nolightData, Art::switch_off_nolightWidth, Art::switch_off_nolightHeight, kImageFormatBGRA)
+    , fImgLabelMixMode(Art::mix_mode_labelData, Art::mix_mode_labelWidth, Art::mix_mode_labelHeight, kImageFormatBGRA)
+    , fImgLabelMonoStereo(Art::mono_stereo_labelData, Art::mono_stereo_labelWidth, Art::mono_stereo_labelHeight, kImageFormatBGRA)
+
 {
     // Knob initial angles
     constexpr int KNOB_ANGLE = 287;
@@ -25,6 +30,7 @@ MinatonUI::MinatonUI()
     _createKnob(fMasterVolume, PARAM_MASTER_VOLUME, 520, 442, KNOB_VOLUME_ANGLE);
     _createSwitchButton(fSync, PARAM_SYNC, 375, 473);
     _createSwitchButton(fLegato, PARAM_LEGATO, 375, 519);
+    _createSwitchButton(fOutputMode, PARAM_OUTPUT_MODE, 446, 417, false);
 
     // DCO activator
     _createSwitchButton(fDco1Active, PARAM_ACTIVE_ONE, 54, 40);
@@ -121,6 +127,9 @@ void MinatonUI::parameterChanged(uint32_t index, float value)
         break;
     case PARAM_LEGATO:
         fLegato->setDown(value > 0.0f ? true : false);
+        break;
+    case PARAM_OUTPUT_MODE:
+        fOutputMode->setDown(value > 0.0f ? true : false);
         break;
 
     // DCO waveform
@@ -348,6 +357,10 @@ void MinatonUI::onDisplay()
     // LFO waveform sliders
     fSliderBackgroundLfo.drawAt(context, 494, 50); // LFO1
     fSliderBackgroundLfo.drawAt(context, 494, 250); // LFO2
+
+    // Image labels
+    fImgLabelMonoStereo.drawAt(context, 448, 415);
+    fImgLabelMixMode.drawAt(context, 425, 458);
 }
 
 void MinatonUI::idleCallback() { }

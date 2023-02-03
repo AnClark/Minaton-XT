@@ -61,6 +61,8 @@ private:
     Image fKnobImage, fVolumeKnobImage;
     Image fSliderImage, fSliderBackgroundDco, fSliderBackgroundEnv, fSliderBackgroundLfo;
     Image fSwitchButtonImage_ON, fSwitchButtonImage_OFF;
+    Image fSwitchNoLightImage_ON, fSwitchNoLightImage_OFF;
+    Image fImgLabelMixMode, fImgLabelMonoStereo;
     //  ImageAboutWindow fAboutWindow;
 
     // -------------------------------------------------------------------
@@ -74,7 +76,7 @@ private:
     ScopedPointer<ImageButton> fFinetune1Center, fFinetune2Center, fFinetune3Center;
     ScopedPointer<ImageKnob> fInertia1, fInertia2, fInertia3;
 
-    ScopedPointer<ImageSwitch> fLegato, fSync;
+    ScopedPointer<ImageSwitch> fLegato, fSync, fOutputMode;
 
     ScopedPointer<ImageKnob> fCutOffFrequency, fResonance;
 
@@ -96,7 +98,7 @@ private:
 
     void _createKnob(ScopedPointer<ImageKnob>& knob, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, uint rotationAngle);
     void _createSlider(ScopedPointer<ImageSlider>& slider, MinatonParamId paramId, uint startPosX, uint startPosY, uint endPosX, uint endPosY, float step, bool inverted = false);
-    void _createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY);
+    void _createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, bool withLight = true);
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MinatonUI)
 };

@@ -29,9 +29,9 @@ void MinatonUI::_createSlider(ScopedPointer<ImageSlider>& slider, MinatonParamId
     slider->setCallback(this);
 }
 
-void MinatonUI::_createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY)
+void MinatonUI::_createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, bool withLight)
 {
-    switchButton = new ImageSwitch(this, fSwitchButtonImage_OFF, fSwitchButtonImage_ON);
+    switchButton = new ImageSwitch(this, withLight ? fSwitchButtonImage_OFF : fSwitchNoLightImage_OFF, withLight ? fSwitchButtonImage_ON : fSwitchNoLightImage_ON);
     switchButton->setId(paramId);
     switchButton->setAbsolutePos(absolutePosX, absolutePosY);
     switchButton->setCallback(this);
