@@ -19,6 +19,11 @@ enum minaton_channel_mode {
     CHANNEL_L_AND_R
 };
 
+enum minaton_output_mode {
+    OUTPUT_MONO,
+    OUTPUT_STEREO
+};
+
 //=========================================================
 //-- Accessor for embedded waves
 //
@@ -47,8 +52,8 @@ public:
     void init();
     int add_wave(string, const unsigned char*, size_t size);
 
-    void set_output_mode(bool mode) { output_mode = mode; }
-    bool get_output_mode() { return output_mode; }
+    void set_output_mode(bool mode) { output_mode = minaton_output_mode(mode); }
+    minaton_output_mode get_output_mode() { return output_mode; }
 
     void set_dco_output_channel(int dco_number, minaton_channel_mode channel);
     minaton_channel_mode get_dco_output_channel(int dco_number);
@@ -56,7 +61,7 @@ public:
 private:
     Memory m_memory;
 
-    bool output_mode; // true: stereo; false: mono
+    minaton_output_mode output_mode; // true: stereo; false: mono
     minaton_channel_mode dco1_output_channel;
     minaton_channel_mode dco2_output_channel;
     minaton_channel_mode dco3_output_channel;
