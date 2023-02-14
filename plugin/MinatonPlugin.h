@@ -6,6 +6,7 @@
 #include "MinatonParams.h"
 
 #include <memory>
+#include <queue>
 
 START_NAMESPACE_DISTRHO
 
@@ -20,6 +21,16 @@ class MinatonPlugin : public Plugin {
     uint32_t m_counter;
     int last_note;
     int control_delay;
+
+    // Resampler data
+    uint32_t fBufferSize;
+    SRC_STATE* m_resampler_state;
+    SRC_DATA m_resampler_data;
+    int m_resampler_error;
+    bool m_resampler_loaded;
+
+    float* m_out_before_resample_l;
+    float* m_out_before_resample_r;
 
 public:
     MinatonPlugin();
@@ -104,6 +115,7 @@ protected:
     // Callbacks (optional)
 
     void sampleRateChanged(double newSampleRate) override;
+    void bufferSizeChanged(uint32_t newBufferSize) override;
 
 private:
     // ----------------------------------------------------------------------------------------------------------------
@@ -124,3 +136,8 @@ private:
 };
 
 END_NAMESPACE_DISTRHO
+
+constexpr double getExpectedInputSize(float inSampleRate, float outSampleRate, uint32_t targetOutSize)
+{
+    return (inSampleRate / outSampleRate) * targetOutSize;
+}

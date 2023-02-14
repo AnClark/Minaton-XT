@@ -33,11 +33,31 @@ MinatonPlugin::MinatonPlugin()
     fSynthesizer->release_envelope2();
     fSynthesizer->envelope1.level = 0;
     fSynthesizer->envelope2.level = 0;
+
+    // Initialize resampler buffer
+    m_out_before_resample_l = nullptr;
+    m_out_before_resample_r = nullptr;
+    bufferSizeChanged(getBufferSize());
+
+    // Initialize resampler
+    m_resampler_state = src_new(SRC_LINEAR, 2, &m_resampler_error);
+    if (!m_resampler_state) {
+        d_stderr2(">>> ERROR: Cannot load resampler. Will not resample when samplerate != 44100.0f.");
+        m_resampler_loaded = false;
+    } else {
+        d_stderr(">>> Resampler loaded.");
+        m_resampler_loaded = true;
+    }
 }
 
 MinatonPlugin::~MinatonPlugin()
 {
     fSynthesizer->cleanup();
+
+    src_delete(m_resampler_state);
+
+    free(m_out_before_resample_l);
+    free(m_out_before_resample_r);
 }
 
 void MinatonPlugin::initParameter(uint32_t index, Parameter& parameter)
@@ -98,13 +118,47 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         return;
     }
 
-    for (unsigned int x = 0; x < frames; x++) {
-        _processAudioFrame(outputs[0], outputs[1], x);
+    // Resample
+    if (fSampleRate == 44100.0f || !m_resampler_loaded) { // Default sample rate = 44100, no need to resample
+        for (unsigned int x = 0; x < frames; x++) {
+            _processAudioFrame(outputs[0], outputs[1], x);
+        }
+    } else { // If not, resample it
+        const double PROCESS_SAMPLE_COUNT = getExpectedInputSize(44100.0f, fSampleRate, frames);
+
+        for (unsigned int x = 0; x < PROCESS_SAMPLE_COUNT; x++) {
+            _processAudioFrame(m_out_before_resample_l, m_out_before_resample_r, x);
+        }
+
+        src_reset(m_resampler_state);
+        m_resampler_data.data_in = m_out_before_resample_l;
+        m_resampler_data.input_frames = PROCESS_SAMPLE_COUNT;
+        m_resampler_data.data_out = outputs[0];
+        m_resampler_data.output_frames = (long)round(PROCESS_SAMPLE_COUNT * (double)fSampleRate / (double)44100.0f);
+        m_resampler_data.src_ratio = (float)fSampleRate / 44100.0f;
+        src_process(m_resampler_state, &m_resampler_data);
+
+        src_reset(m_resampler_state);
+        m_resampler_data.data_in = m_out_before_resample_r;
+        m_resampler_data.input_frames = PROCESS_SAMPLE_COUNT;
+        m_resampler_data.data_out = outputs[1];
+        m_resampler_data.output_frames = (long)round(PROCESS_SAMPLE_COUNT * (double)fSampleRate / (double)44100.0f);
+        m_resampler_data.src_ratio = (float)fSampleRate / 44100.0f;
+        src_process(m_resampler_state, &m_resampler_data);
     }
 }
 
 void MinatonPlugin::sampleRateChanged(double newSampleRate)
 {
+    fSampleRate = newSampleRate;
+}
+
+void MinatonPlugin::bufferSizeChanged(uint32_t newBufferSize)
+{
+    fBufferSize = newBufferSize;
+
+    m_out_before_resample_l = (float*)realloc(m_out_before_resample_l, fBufferSize * sizeof(float));
+    m_out_before_resample_r = (float*)realloc(m_out_before_resample_r, fBufferSize * sizeof(float));
 }
 
 Plugin* createPlugin()
