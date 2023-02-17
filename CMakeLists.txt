@@ -98,6 +98,7 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
         plugin/MinatonParamAccess.cpp
+        vendor/resampler/resampler.cpp
     FILES_UI
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
@@ -110,6 +111,7 @@ target_include_directories (${PROJECT_NAME} PUBLIC
     plugin/
     src/
     ${GENERATED_WAVES_DIR}
+    vendor/resampler
 )
 
 add_dependencies (${PROJECT_NAME}-dsp generate_waves)

@@ -11,6 +11,7 @@ START_NAMESPACE_DISTRHO
 
 class MinatonPlugin : public Plugin {
     double fSampleRate = getSampleRate();
+    double fBufferSize = getBufferSize();
     std::unique_ptr<minaton_synth_dpf> fSynthesizer = std::make_unique<minaton_synth_dpf>();
 
     // Minaton note key data
@@ -20,6 +21,11 @@ class MinatonPlugin : public Plugin {
     uint32_t m_counter;
     int last_note;
     int control_delay;
+
+    // Resampler data
+    //uint32_t target_sample_count;
+    float *buffer_before_resample_l, *buffer_before_resample_r;
+    float *buffer_after_resample_l, *buffer_after_resample_r;
 
 public:
     MinatonPlugin();
@@ -103,6 +109,7 @@ protected:
     // ----------------------------------------------------------------------------------------------------------------
     // Callbacks (optional)
 
+    void bufferSizeChanged(int newBufferSize);
     void sampleRateChanged(double newSampleRate) override;
 
 private:
@@ -111,6 +118,9 @@ private:
 
     float _obtainSynthParameter(MinatonParamId index) const;
     void _applySynthParameter(MinatonParamId index, float value);
+
+    void initResampler(uint32_t bufferSize);
+    void reinitResampler(uint32_t bufferSize, uint32_t sampleRate);
 
     // ----------------------------------------------------------------------------------------------------------------
     // Processors
