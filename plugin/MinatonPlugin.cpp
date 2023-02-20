@@ -105,6 +105,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 
 void MinatonPlugin::sampleRateChanged(double newSampleRate)
 {
+    fSampleRate = newSampleRate;
 }
 
 Plugin* createPlugin()
