@@ -21,6 +21,12 @@ class MinatonPlugin : public Plugin {
     int last_note;
     int control_delay;
 
+    // Resampler related
+    float m_output_l[4096];
+    float m_output_r[4096];
+    bool m_should_insert_sample[4096];
+    float m_resample_factor[4096];
+
 public:
     MinatonPlugin();
     ~MinatonPlugin();

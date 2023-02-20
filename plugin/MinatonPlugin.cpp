@@ -98,8 +98,46 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         return;
     }
 
-    for (unsigned int x = 0; x < frames; x++) {
-        _processAudioFrame(outputs[0], outputs[1], x);
+    if (fSampleRate == 44100.0f) {
+        for (unsigned int x = 0; x < frames; x++) {
+            _processAudioFrame(outputs[0], outputs[1], x);
+        }
+    } else {
+        double stepDist = 44100.0f / fSampleRate;
+        const uint64_t fixedFraction = (1LL << 32);
+        const uint64_t step = ((uint64_t)(stepDist * fixedFraction + 0.5));
+        uint64_t curOffset = 0;
+        constexpr uint32_t channels = 1;
+
+        const double normFixed = (1.0 / (1LL << 32));
+
+        uint32_t inputFrameIndex = 0, input_delta = 0;
+        while (inputFrameIndex < frames) {
+            m_resample_factor[inputFrameIndex] = ((double)(curOffset >> 32) + ((curOffset & (fixedFraction - 1)) * normFixed));
+            // for (uint32_t c = 0; c < channels; c += 1) {
+            //     shouldInsertSample[inputFrameIndex] = true;
+            //*output++ = (float)(input[c] + (input[c + channels] - input[c]) * ((double)(curOffset >> 32) + ((curOffset & (fixedFraction - 1)) * normFixed)));
+            //    resample_factor = ((double)(curOffset >> 32) + ((curOffset & (fixedFraction - 1)) * normFixed));
+            //}
+            curOffset += step;
+            uint32_t input_delta = (curOffset >> 32) * channels; // For debug
+
+            if (input_delta > 0) {
+                m_should_insert_sample[inputFrameIndex] = true;
+                _processAudioFrame(m_output_l, m_output_r, inputFrameIndex);
+            } else if (input_delta == 0) {
+                m_should_insert_sample[inputFrameIndex] = false;
+                m_output_l[inputFrameIndex] = 0.0f;
+                m_output_r[inputFrameIndex] = 0.0f;
+            }
+
+            inputFrameIndex++;
+
+            curOffset &= (fixedFraction - 1);
+        }
+
+        memcpy(outputs[0], m_output_l, frames);
+        memcpy(outputs[1], m_output_r, frames);
     }
 }
 
