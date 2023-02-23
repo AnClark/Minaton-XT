@@ -170,7 +170,19 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
         }
         // control change. `key` is control's ID (CC ID).
         else if (status == 0xb0) {
-            d_stderr2("[Unimplemented] Control change: CC#%d", key);
+            if (key == 0x78) { // Process All Notes Off (0x78)
+                d_stderr("[MIDI] All Notes Off");
+                fSynthesizer->panic();
+
+                last_note = -1;
+            } else if (key == 0x7b) { // Process All Sounds Off (0x7b)
+                d_stderr("[MIDI] All Sounds Off");
+                fSynthesizer->panic();
+
+                last_note = -1;
+            } else {
+                d_stderr2("[Unimplemented] Control change: CC#%d", key);
+            }
         }
         // pitch bend
         else if (status == 0xe0) {

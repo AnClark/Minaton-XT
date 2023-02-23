@@ -115,6 +115,19 @@ int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t s
     return number_of_waves - 1;
 }
 
+void minaton_synth_dpf::panic()
+{
+    // Setting state to "dormant" can immediately turn all sounds off.
+    //
+    // "dormant" is the state when envelope ceases.
+    // See minaton_synth::dca_update(): part `if (envelope1.state == release)`.
+
+    envelope1.state = dormant;
+    envelope1.level = 0;
+    envelope2.state = dormant;
+    envelope2.level = 0;
+}
+
 //=========================================================
 //-- Accessor for embedded waves
 //=========================================================

@@ -37,6 +37,8 @@ public:
     void init();
     int add_wave(string, const unsigned char*, size_t size);
 
+    void panic();
+
 private:
     Memory m_memory;
 };
