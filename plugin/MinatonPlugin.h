@@ -24,7 +24,6 @@ class MinatonPlugin : public Plugin {
 
     // Resampler data
     float *buffer_before_resample_l, *buffer_before_resample_r;
-    float *buffer_after_resample_l, *buffer_after_resample_r;
 
 public:
     MinatonPlugin();

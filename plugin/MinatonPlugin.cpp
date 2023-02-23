@@ -131,15 +131,8 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         // Process each channel respectively.
         // Note: The resampler functions are originally designed for interleaved WAV files.
         const int channels = 1;
-        Resample_f32(buffer_before_resample_l, buffer_after_resample_l, 44100, int(fSampleRate), expect_input_size / channels, channels);
-        Resample_f32(buffer_before_resample_r, buffer_after_resample_r, 44100, int(fSampleRate), expect_input_size / channels, channels);
-
-        // NOTICE: Do not use memcpy(). Use for-loop.
-        //         Otherwise the output samples will not be continuous!
-        for (uint32_t x = 0; x < frames; x++) {
-            outputs[0][x] = buffer_after_resample_l[x];
-            outputs[1][x] = buffer_after_resample_r[x];
-        }
+        Resample_f32(buffer_before_resample_l, outputs[0], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
+        Resample_f32(buffer_before_resample_r, outputs[1], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
     }
 }
 
@@ -171,25 +164,18 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
 {
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
-    buffer_after_resample_l = (float*)malloc(sizeof(float) * bufferSize);
-    buffer_after_resample_r = (float*)malloc(sizeof(float) * bufferSize);
 }
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 {
     buffer_before_resample_l = (float*)realloc(buffer_before_resample_l, sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)realloc(buffer_before_resample_r, sizeof(float) * bufferSize);
-
-    buffer_after_resample_l = (float*)realloc(buffer_after_resample_l, sizeof(float) * bufferSize);
-    buffer_after_resample_r = (float*)realloc(buffer_after_resample_r, sizeof(float) * bufferSize);
 }
 
 void MinatonPlugin::cleanupResampler()
 {
     free(buffer_before_resample_l);
     free(buffer_before_resample_r);
-    free(buffer_after_resample_l);
-    free(buffer_after_resample_r);
 }
 
 Plugin* createPlugin()

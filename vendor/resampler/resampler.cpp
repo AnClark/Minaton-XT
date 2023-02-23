@@ -35,7 +35,7 @@ uint64_t Resample_f32(const float* input, float* output, int inSampleRate, int o
 }
 
 uint64_t Resample_f32(const float* input, float* output, int inSampleRate, int outSampleRate, double inputSize,
-    uint32_t channels)
+    uint32_t channels, uint32_t maxOutputSize)
 {
     if (input == NULL)
         return 0;
@@ -56,6 +56,9 @@ uint64_t Resample_f32(const float* input, float* output, int inSampleRate, int o
     outputSize -= outputSize % channels;
     if (output == NULL)
         return outputSize;
+
+    // Prevent out-of-range exceptions
+    outputSize = (outputSize > maxOutputSize) ? maxOutputSize : outputSize;
 
     double stepDist = ((double)inSampleRate / (double)outSampleRate);
     const uint64_t fixedFraction = (1LL << 32);
