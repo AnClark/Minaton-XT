@@ -185,9 +185,11 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
             }
         }
         // pitch bend
+        // FIXME: Bend value +8192 (raw data: 0xe0 0x7f 0x7f) acts as same as -8192.
+        //        Input MIDI event in Plugin::run() has wrong values, even though REAPER passes the right data to Minaton.
         else if (status == 0xe0) {
-            const float pitchbend = float(key + (value << 7) - 0x2000) / 8192.0f;
-            d_stderr2("[Unimplemented] Pitch bend: bend to %f", pitchbend);
+            const float pitchbend = float((data[1] & 0x7f) + (value << 7) - 0x2000) / 8192.0f;
+            fSynthesizer->set_tuning(m_key - 38 + pitchbend);
         }
     }
 }
