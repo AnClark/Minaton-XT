@@ -8,6 +8,22 @@ project (minaton
 add_subdirectory (dpf)
 
 #
+# CPack configuration #1
+#
+
+# NOTICE:
+#
+# libsamplerate CMakeLists.txt will unconditionally include CPack.
+# If included twice, CPack will ONLY package source tree in all condition!
+# This is a trap. Mind your steps.
+
+# Where to find our CMake modules
+set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Include our CPack config file
+include (Packing)
+
+#
 # Manage dependencies
 #
 
@@ -39,6 +55,11 @@ else ()
     set (ENABLE_BOW_DOCS OFF CACHE BOOL "")
     set (ENABLE_CPACK OFF CACHE BOOL "")
 
+    # Reduce install targets
+    # Note: Cannot thoroughly switch off installation. See cmake/PackingComponents.cmake for workaround.
+    set (ENABLE_PACKAGE_CONFIG OFF CACHE BOOL "")
+    set (INSTALL_PKGCONFIG_MODULE OFF CACHE BOOL "")
+
     add_subdirectory (vendor/libsndfile)
 
     # Need this to fix linker errors around Glibc
@@ -57,10 +78,27 @@ else ()
     set (BUILD_TESTING OFF CACHE BOOL "")
     set (LIBSAMPLERATE_EXAMPLES OFF CACHE BOOL "")
 
+    # Switch off installation because we are using CPack
+    set (LIBSAMPLERATE_INSTALL OFF CACHE BOOL "")
+
     add_subdirectory (vendor/libsamplerate)
 
     include_directories (vendor/libsamplerate/include)
 endif ()
+
+#
+# CPack configurations #2
+#
+
+# Prevent including CPack twice.
+# If not using system-provided libsamplerate, CPack is already included.
+if (USE_SYSTEM_LIBSAMPLERATE)
+    include (CPack)
+endif ()
+
+# Include our CPack component definition
+# Must included CPack before including this
+include (PackingComponents)
 
 #
 # Convert waves into C array
@@ -90,7 +128,7 @@ add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 #
 
 dpf_add_plugin (${PROJECT_NAME}
-    TARGETS vst2 vst3 lv2 clap jack
+    TARGETS vst2 vst3 lv2 clap
     UI_TYPE opengl
     FILES_DSP
         src/synth.cpp
@@ -129,3 +167,47 @@ else ()
 endif ()
 
 target_link_libraries (${PROJECT_NAME} PRIVATE ${LINK_LIBSAMPLERATE} ${LINK_LIBSNDFILE})
+
+#
+# Install
+#
+
+# NOTICE:
+# Must use relative path for NSIS generator, otherwise this error will occur:
+#    ABSOLUTE path INSTALL DESTINATION forbidden (by caller)
+# See: https://stackoverflow.com/questions/23613624/cpack-nsis-generate-installer-for-windows
+
+dpf__determine_vst3_package_architecture(vst3_arch)
+if (WIN32)
+    install (TARGETS ${PROJECT_NAME}-vst2
+        COMPONENT VST2Plugin
+        LIBRARY DESTINATION "${CPACK_INSTALL_PREFIX}/Steinberg/VstPlugins"
+    )
+    install (TARGETS ${PROJECT_NAME}-vst3
+        COMPONENT VST3Plugin
+        LIBRARY DESTINATION "${CPACK_INSTALL_PREFIX}/Common Files/VST3/${PROJECT_NAME}.vst3/${vst3_arch}/"
+    )
+    install (TARGETS ${PROJECT_NAME}-clap
+        COMPONENT CLAPPlugin
+        LIBRARY DESTINATION "${CPACK_INSTALL_PREFIX}/Common Files/CLAP"
+    )
+    install (TARGETS ${PROJECT_NAME}-lv2
+        COMPONENT LV2Plugin
+        LIBRARY DESTINATION "${CPACK_INSTALL_PREFIX}/Common Files/LV2/${PROJECT_NAME}.lv2"
+    )
+    install (TARGETS ${PROJECT_NAME}-lv2-ui
+        COMPONENT LV2Plugin
+        LIBRARY DESTINATION "${CPACK_INSTALL_PREFIX}/Common Files/LV2/${PROJECT_NAME}.lv2"
+    )
+
+    install(FILES
+        ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}.lv2/manifest.ttl
+        ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}.lv2/${PROJECT_NAME}_dsp.ttl
+        ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}.lv2/${PROJECT_NAME}_ui.ttl
+        COMPONENT LV2Plugin
+        DESTINATION "${CPACK_INSTALL_PREFIX}/Common Files/LV2/${PROJECT_NAME}.lv2"
+    )
+endif ()
+
+# Must include CPack again to apply install() COMPONENT settings.
+include (CPack)
