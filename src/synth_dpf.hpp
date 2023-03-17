@@ -38,6 +38,7 @@ public:
     int add_wave(string, const unsigned char*, size_t size);
 
     void panic();
+    void reset_dco_out_position();
 
 private:
     Memory m_memory;

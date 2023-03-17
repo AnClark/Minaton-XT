@@ -126,6 +126,18 @@ void minaton_synth_dpf::panic()
     envelope1.level = 0;
     envelope2.state = dormant;
     envelope2.level = 0;
+
+    // Remember to reset DCO position as well
+    reset_dco_out_position();
+}
+
+void minaton_synth_dpf::reset_dco_out_position()
+{
+    // Reset DCO position in order to reset phases of DCOs and LFOs
+    // This can avoid weird stereo spectrum among the 3 DCOs (e.g. when after resetting LFO sends to 0)
+
+    for (uint8_t i = 0; i < 5; i++)
+        dco_out_position[i] = 0;
 }
 
 //=========================================================
