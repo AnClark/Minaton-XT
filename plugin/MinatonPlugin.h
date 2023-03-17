@@ -5,6 +5,8 @@
 #include "DistrhoPlugin.hpp"
 #include "MinatonParams.h"
 
+#include "config.h"
+
 #include <memory>
 
 START_NAMESPACE_DISTRHO
@@ -39,7 +41,7 @@ protected:
     */
     const char* getLabel() const noexcept override
     {
-        return "Minaton";
+        return DISTRHO_PLUGIN_NAME;
     }
 
     /**
@@ -56,7 +58,7 @@ protected:
          */
     const char* getMaker() const noexcept override
     {
-        return "Thunderox, AnClark Liu";
+        return DISTRHO_PLUGIN_BRAND;
     }
 
     /**
@@ -74,7 +76,7 @@ protected:
         */
     uint32_t getVersion() const noexcept override
     {
-        return d_version(0, 0, 3);
+        return d_version(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
     }
 
     /**

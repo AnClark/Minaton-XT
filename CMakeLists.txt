@@ -107,11 +107,14 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonParams.cpp
 )
 
+configure_file (plugin/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+
 target_include_directories (${PROJECT_NAME} PUBLIC 
     plugin/
     src/
     ${GENERATED_WAVES_DIR}
     vendor/resampler
+    ${PROJECT_BINARY_DIR}
 )
 
 add_dependencies (${PROJECT_NAME}-dsp generate_waves)
