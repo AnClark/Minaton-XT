@@ -85,8 +85,15 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
 
-    mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
-    mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+    // Apply DCF (Moog resonant filter)
+    //
+    // If you only enable either DCO1 or DCO3, DCF will make Minaton overload: it consumes more than
+    // 5.0% CPU on REAPER, with "Release" CMake profile.
+    // So here we only apply filters if corresponding DCO is active. That should be a great workaround.
+    if (fSynthesizer->active1 || fSynthesizer->active2)
+        mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+    if (fSynthesizer->active2 || fSynthesizer->active3)
+        mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
 
     audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
     audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out_right, fSynthesizer->adsr_amp_amount1);
