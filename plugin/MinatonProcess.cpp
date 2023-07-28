@@ -145,6 +145,9 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
 
         // note on
         if (status == 0x90 && value > 0) {
+            // Reset DCO audio frame position to avoid unexpected phase distortion
+            fSynthesizer->reset_dco_out_position();
+
 #if 0
             d_stderr("Current key on: %d", key);
 #else
