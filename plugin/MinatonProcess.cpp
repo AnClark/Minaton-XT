@@ -1,5 +1,10 @@
 #include "MinatonPlugin.h"
 
+// Check if a DCO should output to specified channel
+// NOTICE: Do not leave the outer parentheses, otherwise you'll encounter unexpected behaviors!
+#define IS_DCO_OUT_TO_L(id) (fSynthesizer->get_dco_output_channel(id) == CHANNEL_LEFT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R)
+#define IS_DCO_OUT_TO_R(id) (fSynthesizer->get_dco_output_channel(id) == CHANNEL_RIGHT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R)
+
 static float calculate_volume_division_factor(float volume_param)
 {
     // Sanity check. Volume out of range will corrupt the synthesizer!
@@ -75,28 +80,49 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     float volume_div_factor = calculate_volume_division_factor(fSynthesizer->master_volume);
 
-    float mixer_out_left = (mix1 + mix2) / volume_div_factor;
-    float mixer_out_right = (mix2 + mix3) / volume_div_factor;
+    if (fSynthesizer->get_output_mode() == OUTPUT_STEREO) { // Stereo output
+        float mixer_out_left = ((IS_DCO_OUT_TO_L(0) ? mix1 : 0.0f) + (IS_DCO_OUT_TO_L(1) ? mix2 : 0.0f) + (IS_DCO_OUT_TO_L(2) ? mix3 : 0.0f)) / volume_div_factor;
+        float mixer_out_right = ((IS_DCO_OUT_TO_R(0) ? mix1 : 0.0f) + (IS_DCO_OUT_TO_R(1) ? mix2 : 0.0f) + (IS_DCO_OUT_TO_R(2) ? mix3 : 0.0f)) / volume_div_factor;
 
-    // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
-    // Even a illeagal value still corrupts the synthesizer!
-    mixer_out_sanitize(mixer_out_left);
-    mixer_out_sanitize(mixer_out_right);
+        // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
+        // Even a illeagal value still corrupts the synthesizer!
+        mixer_out_sanitize(mixer_out_left);
+        mixer_out_sanitize(mixer_out_right);
 
-    // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
+        // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
 
-    // Apply DCF (Moog resonant filter)
-    //
-    // If you only enable either DCO1 or DCO3, DCF will make Minaton overload: it consumes more than
-    // 5.0% CPU on REAPER, with "Release" CMake profile.
-    // So here we only apply filters if corresponding DCO is active. That should be a great workaround.
-    if (fSynthesizer->active1 || fSynthesizer->active2)
-        mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
-    if (fSynthesizer->active2 || fSynthesizer->active3)
-        mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+        // Apply DCF (Moog resonant filter)
+        //
+        // If there is only ONE channel routed to DCO, then DCF will make Minaton overload:
+        // it consumes more than 5.0% CPU on REAPER, with "Release" CMake profile.
+        //
+        // For example:
+        //   - DCO1 -> L, DCO2 -> L/R, DCO3 -> R, but only DCO1 is active.
+        //   - All DCOs route to L, and active at least one DCO.
+        //
+        // To solve this issue, I have a workaround. Only apply DCF for channel, when:
+        //   - At least one DCO is routed there, and
+        //   - that DCO is active as well.
+        //
+        // NOTICE: Make sure you don't forget the outer parentheses of IS_DCO_OUT_TO_(L|R)!
+        if ((IS_DCO_OUT_TO_L(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_L(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_L(2) && fSynthesizer->active3))
+            mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+        if ((IS_DCO_OUT_TO_R(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_R(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_R(2) && fSynthesizer->active3))
+            mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
 
-    audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
-    audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out_right, fSynthesizer->adsr_amp_amount1);
+        audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
+        audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out_right, fSynthesizer->adsr_amp_amount1);
+    } else { // Mono output
+        float mixer_out = (mix1 + mix2 + mix3) / volume_div_factor;
+
+        mixer_out_sanitize(mixer_out);
+
+        // dcf_left() and dcf_right() has the same output on mono mix-down
+        mixer_out = fSynthesizer->dcf_left(mixer_out, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+
+        audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out, fSynthesizer->adsr_amp_amount1);
+        audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out, fSynthesizer->adsr_amp_amount1);
+    }
 }
 
 void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)

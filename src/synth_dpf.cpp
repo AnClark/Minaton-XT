@@ -140,6 +140,38 @@ void minaton_synth_dpf::reset_dco_out_position()
         dco_out_position[i] = 0;
 }
 
+void minaton_synth_dpf::set_dco_output_channel(int dco_number, minaton_channel_mode channel)
+{
+    switch (dco_number) {
+    case 0: // DCO1
+        dco1_output_channel = channel;
+        break;
+    case 1: // DCO2
+        dco2_output_channel = channel;
+        break;
+    case 2: // DCO3
+        dco3_output_channel = channel;
+        break;
+    }
+}
+
+minaton_channel_mode minaton_synth_dpf::get_dco_output_channel(int dco_number)
+{
+    switch (dco_number) {
+    case 0: // DCO1
+        return dco1_output_channel;
+        break;
+    case 1: // DCO2
+        return dco2_output_channel;
+        break;
+    case 2: // DCO3
+        return dco3_output_channel;
+        break;
+    }
+
+    return CHANNEL_L_AND_R;
+}
+
 //=========================================================
 //-- Accessor for embedded waves
 //=========================================================
