@@ -20,7 +20,8 @@ MinatonUI::MinatonUI()
     , fSwitchNoLightImage_OFF(Art::switch_off_nolightData, Art::switch_off_nolightWidth, Art::switch_off_nolightHeight, kImageFormatBGRA)
     , fImgLabelMixMode(Art::mix_mode_labelData, Art::mix_mode_labelWidth, Art::mix_mode_labelHeight, kImageFormatBGRA)
     , fImgLabelMonoStereo(Art::mono_stereo_labelData, Art::mono_stereo_labelWidth, Art::mono_stereo_labelHeight, kImageFormatBGRA)
-
+    , fImgPanicButton(Art::panic_buttonData, Art::panic_buttonWidth, Art::panic_buttonHeight)
+    , fImgPanicButton_Pressed(Art::panic_button_pressedData, Art::panic_button_pressedWidth, Art::panic_button_pressedHeight)
 {
     // Knob initial angles
     constexpr int KNOB_ANGLE = 287;
@@ -100,6 +101,9 @@ MinatonUI::MinatonUI()
     // Equalizer params
     _createKnob(fCutOffFrequency, PARAM_FREQUENCY, 377, 368, KNOB_ANGLE);
     _createKnob(fResonance, PARAM_RESONANCE, 377, 422, KNOB_ANGLE);
+
+    // Panic button
+    _createButton(fPanic, BTN_PANIC, fImgPanicButton, fImgPanicButton_Pressed, 452, 505);
 }
 
 void MinatonUI::parameterChanged(uint32_t index, float value)
@@ -279,6 +283,12 @@ void MinatonUI::parameterChanged(uint32_t index, float value)
 
 void MinatonUI::imageButtonClicked(ImageButton* button, int)
 {
+    switch (button->getId()) {
+    case BTN_PANIC: {
+        panic();
+        break;
+    }
+    }
 }
 
 void MinatonUI::imageSwitchClicked(ImageSwitch* button, bool down)
@@ -364,6 +374,27 @@ void MinatonUI::onDisplay()
 }
 
 void MinatonUI::idleCallback() { }
+
+void MinatonUI::panic()
+{
+    /**
+        There is no API to send MIDI data to DSP side. Instead, DPF provides UI::sendNote().
+        But we can still send any MIDI data via this method, simply doing a hack.
+
+        In method UI::sendNote(uint8_t channel, uint8_t note, uint8_t velocity):
+
+        `channel` will be converted into MIDI data 0 by:
+        `midi_data[0] = (velocity != 0 ? 0x90 : 0x80) | channel;`
+
+        To send MIDI controller data, we need to transform midi_data[0] into MIDI_STATUS_CONTROLLER (0xB0)
+        by simply applying a proper `channel` value. It would be easy to calculate:
+            0x80 | channel = 0xB0
+        => 0b10000000 | channel = 0b10110000
+        => channel = 0b00110000
+        => channel = 0x30
+    */
+    sendNote(0x30, 0x7B, 0); // MIDI_CC_ALL_NOTES_OFF = 0x7B
+}
 
 // -----------------------------------------------------------------------
 

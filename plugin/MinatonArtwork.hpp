@@ -25,6 +25,16 @@ namespace MinatonArtwork
     const unsigned int newknobWidth    = 42;
     const unsigned int newknobHeight   = 42;
 
+    extern const char* panic_buttonData;
+    const unsigned int panic_buttonDataSize = 11200;
+    const unsigned int panic_buttonWidth    = 70;
+    const unsigned int panic_buttonHeight   = 40;
+
+    extern const char* panic_button_pressedData;
+    const unsigned int panic_button_pressedDataSize = 11200;
+    const unsigned int panic_button_pressedWidth    = 70;
+    const unsigned int panic_button_pressedHeight   = 40;
+
     extern const char* sliderData;
     const unsigned int sliderDataSize = 6084;
     const unsigned int sliderWidth    = 39;

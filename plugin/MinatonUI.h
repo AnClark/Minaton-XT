@@ -63,6 +63,7 @@ private:
     Image fSwitchButtonImage_ON, fSwitchButtonImage_OFF;
     Image fSwitchNoLightImage_ON, fSwitchNoLightImage_OFF;
     Image fImgLabelMixMode, fImgLabelMonoStereo;
+    Image fImgPanicButton, fImgPanicButton_Pressed;
     //  ImageAboutWindow fAboutWindow;
 
     // -------------------------------------------------------------------
@@ -93,6 +94,8 @@ private:
 
     ScopedPointer<ImageKnob> fMasterVolume;
 
+    ScopedPointer<ImageButton> fPanic;
+
     // -------------------------------------------------------------------
     // Helpers
 
@@ -101,9 +104,20 @@ private:
     void _createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, bool withLight = true);
     void _createButton(ScopedPointer<ImageButton>& button, uint id, Image& imageNormal, Image& imagePressed, uint absolutePosX, uint absolutePosY);
 
+    // -------------------------------------------------------------------
+    // Control plugin from UI side
+
+    void panic();
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MinatonUI)
 };
+
+// -----------------------------------------------------------------------
+
+// --------------------------------
+// Button IDs
+
+constexpr uint BTN_PANIC = d_cconst('p', 'n', 'i', 'c');
 
 // -----------------------------------------------------------------------
 
