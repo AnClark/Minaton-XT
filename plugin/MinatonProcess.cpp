@@ -91,8 +91,24 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
         // mixer_out =  1.1f * mixer_out - 0.2f * mixer_out * mixer_out * mixer_out;
 
-        mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
-        mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+        // Apply DCF (Moog resonant filter)
+        //
+        // If there is only ONE channel routed to DCO, then DCF will make Minaton overload:
+        // it consumes more than 5.0% CPU on REAPER, with "Release" CMake profile.
+        //
+        // For example:
+        //   - DCO1 -> L, DCO2 -> L/R, DCO3 -> R, but only DCO1 is active.
+        //   - All DCOs route to L, and active at least one DCO.
+        //
+        // To solve this issue, I have a workaround. Only apply DCF for channel, when:
+        //   - At least one DCO is routed there, and
+        //   - that DCO is active as well.
+        //
+        // NOTICE: Make sure you don't forget the outer parentheses of IS_DCO_OUT_TO_(L|R)!
+        if ((IS_DCO_OUT_TO_L(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_L(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_L(2) && fSynthesizer->active3))
+            mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
+        if ((IS_DCO_OUT_TO_R(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_R(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_R(2) && fSynthesizer->active3))
+            mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
 
         audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
         audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out_right, fSynthesizer->adsr_amp_amount1);
