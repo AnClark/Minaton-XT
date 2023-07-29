@@ -99,6 +99,8 @@ private:
     void _createKnob(ScopedPointer<ImageKnob>& knob, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, uint rotationAngle);
     void _createSlider(ScopedPointer<ImageSlider>& slider, MinatonParamId paramId, uint startPosX, uint startPosY, uint endPosX, uint endPosY, float step, bool inverted = false);
     void _createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, MinatonParamId paramId, uint absolutePosX, uint absolutePosY, bool withLight = true);
+    void _createButton(ScopedPointer<ImageButton>& button, uint id, Image& imageNormal, Image& imagePressed, uint absolutePosX, uint absolutePosY);
+
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MinatonUI)
 };

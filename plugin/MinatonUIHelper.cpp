@@ -37,4 +37,12 @@ void MinatonUI::_createSwitchButton(ScopedPointer<ImageSwitch>& switchButton, Mi
     switchButton->setCallback(this);
 }
 
+void MinatonUI::_createButton(ScopedPointer<ImageButton>& button, uint id, Image& imageNormal, Image& imagePressed, uint absolutePosX, uint absolutePosY)
+{
+    button = new ImageButton(this, imageNormal, imagePressed);
+    button->setId(id);
+    button->setAbsolutePos(absolutePosX, absolutePosY);
+    button->setCallback(this);
+}
+
 END_NAMESPACE_DISTRHO
