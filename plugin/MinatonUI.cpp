@@ -1,5 +1,6 @@
 #include "MinatonUI.h"
 #include "MinatonArtwork.hpp"
+#include "MinatonPresets.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -104,6 +105,9 @@ MinatonUI::MinatonUI()
 
     // Panic button
     _createButton(fPanic, BTN_PANIC, fImgPanicButton, fImgPanicButton_Pressed, 452, 505);
+
+    // Initialize preset manager
+    fPresetManager = new MinatonPresetManager(this);
 
     // Menu (example)
     initMenuForTest();
