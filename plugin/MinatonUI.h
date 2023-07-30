@@ -11,6 +11,8 @@ using DGL_NAMESPACE::ImageKnob;
 using DGL_NAMESPACE::ImageSlider;
 using DGL_NAMESPACE::ImageSwitch;
 
+class MinatonPresetManager;
+
 START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------
@@ -108,6 +110,12 @@ private:
     // Control plugin from UI side
 
     void panic();
+
+    // -------------------------------------------------------------------
+    // Preset manager instance
+
+    ScopedPointer<MinatonPresetManager> fPresetManager;
+    friend class ::MinatonPresetManager;
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MinatonUI)
 };
