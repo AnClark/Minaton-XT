@@ -104,6 +104,9 @@ MinatonUI::MinatonUI()
 
     // Panic button
     _createButton(fPanic, BTN_PANIC, fImgPanicButton, fImgPanicButton_Pressed, 452, 505);
+
+    // Menu (example)
+    initMenuForTest();
 }
 
 void MinatonUI::parameterChanged(uint32_t index, float value)
