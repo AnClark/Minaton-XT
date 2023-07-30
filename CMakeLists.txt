@@ -106,6 +106,7 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
         plugin/MinatonArtwork.cpp
+        plugin/MinatonPresets.cpp
     FILES_COMMON
         plugin/MinatonParams.cpp
 )
@@ -135,6 +136,13 @@ else ()
 endif ()
 
 target_link_libraries (${PROJECT_NAME} PRIVATE ${LINK_LIBSAMPLERATE} ${LINK_LIBSNDFILE})
+
+#
+# Convert factory patches into C array
+# Should be included after dpf_add_plugin().
+#
+
+include (FactoryPresets)
 
 #
 # Context menu support
