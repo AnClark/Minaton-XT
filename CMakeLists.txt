@@ -7,6 +7,9 @@ project (minaton
 
 add_subdirectory (dpf)
 
+# Add our CMake extention module path
+list (APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 #
 # Manage dependencies
 #
