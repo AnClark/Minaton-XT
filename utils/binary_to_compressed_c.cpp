@@ -121,8 +121,9 @@ void scan_files(const std::string dir_path, std::vector<std::string>& filenames)
 
     struct dirent* entry;
     while ((entry = readdir(dir))) {
-        if (strcmp(entry->d_name, ".") == 0
-            || strcmp(entry->d_name, "..") == 0) // If sub directory or "."/".." detected, ignore)
+        if (entry->d_type == 4 // means sub directory
+            || strcmp(entry->d_name, ".") == 0
+            || strcmp(entry->d_name, "..") == 0) // If sub directory or "."/".." detected, ignore
             continue;
         else
             filenames.push_back(std::string(entry->d_name));
