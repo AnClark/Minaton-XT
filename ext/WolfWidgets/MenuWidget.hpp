@@ -100,13 +100,20 @@ public:
 	 * changes the enabled field of items
 	 */
     void setAllItemsEnabled(const bool enabled);
-    void setItemEnabled(const uint index, const bool enabled);
+    void setItemEnabled(const uint id, const bool enabled);
+    void setItemEnabled_ByIndex(const uint index, const bool enabled);
 
     /**
 	 * updates selected_i. this should be called externally to remember user
 	 * selections after the menu is hidden.
 	 */
-    void setItemSelected(const uint i);
+    void setItemSelected(const uint id);
+    void setItemSelected_ByIndex(const uint index);
+
+    /**
+     * get the name of specified item
+     */
+    const char* getItemName(const uint id);
 
     /**
 	 * set font sizes externally

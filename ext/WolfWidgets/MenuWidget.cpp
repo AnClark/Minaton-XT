@@ -117,14 +117,40 @@ void MenuWidget::setAllItemsEnabled(const bool enabled)
         item.enabled = enabled;
 }
 
-void MenuWidget::setItemEnabled(const uint index, const bool enabled)
+void MenuWidget::setItemEnabled(const uint id, const bool enabled)
+{
+    for (auto& item : items) {
+        if (item.id == id)
+            item.enabled = enabled;
+    }
+}
+
+void MenuWidget::setItemEnabled_ByIndex(const uint index, const bool enabled)
 {
     items[index].enabled = enabled;
 }
 
-void MenuWidget::setItemSelected(const uint i)
+void MenuWidget::setItemSelected(const uint id)
 {
-    selected_i = i;
+    for (uint i = 0; i < items.size(); i++) {
+        if (items[i].id == id)
+            selected_i = i;
+    }
+}
+
+void MenuWidget::setItemSelected_ByIndex(const uint index)
+{
+    selected_i = index;
+}
+
+const char* MenuWidget::getItemName(const uint id)
+{
+    for (auto& item : items) {
+        if (item.id == id)
+            return item.name.c_str();
+    }
+
+    return NULL;
 }
 
 void MenuWidget::setRegularFontSize(const uint size) noexcept
