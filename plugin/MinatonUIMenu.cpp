@@ -1,23 +1,29 @@
+#include "MinatonPresets.hpp"
 #include "MinatonUI.h"
 
-void MinatonUI::initMenuForTest()
+enum MinatonMenuId {
+    MENU_ABOUT = 1200,
+    MENU_FIRST_PRESET
+};
+
+void MinatonUI::initRightClickMenu()
 {
     fRightClickMenu = new MenuWidget(this);
 
-    fRightClickMenu->addSection("Node");
-    fRightClickMenu->addItem(1201, "Delete", "(double L-click)");
-
-    fRightClickMenu->addSection("Curve Type");
-    fRightClickMenu->addItem(1202, "Single Power");
-    fRightClickMenu->addItem(1203, "Double Power");
-    fRightClickMenu->addItem(1204, "Stairs");
-    fRightClickMenu->addItem(1205, "Wave");
+    // Preset menu
+    fRightClickMenu->addSection("Presets");
+    for (uint32_t i = 0; i < fPresetManager->getEmbedPresetCount(); i++) {
+        fRightClickMenu->addItem(MENU_FIRST_PRESET + i, fPresetManager->getEmbedPresetById(i).name.c_str());
+    }
 
     fRightClickMenu->setCallback(this);
 }
 
 void MinatonUI::menuItemSelected(const int id)
 {
+    // Apply preset patch
+    const int patchId = id - MENU_FIRST_PRESET;
+    fPresetManager->loadPatchById(patchId);
 }
 
 /**
