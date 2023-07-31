@@ -44,8 +44,22 @@ void MenuWidget::show(const Point<int>& parent_pos_absolute,
     const int menu_right = show_pos.getX() + getWidth();
     if (menu_right > mouse_bounds_absolute.getWidth())
         show_pos.moveBy(-getWidth(), 0);
-    if (menu_bottom > mouse_bounds_absolute.getHeight())
-        show_pos.moveBy(0, -getHeight());
+    if (menu_bottom > mouse_bounds_absolute.getHeight()) {
+        // Sometimes, menu can be extremely long.
+        // So we need to check how to move our menu, to make sure that the whole menu can be shown.
+        // To be brief, we need to check the room between mouse boundary top and cursor.
+        //
+        // Case 0x01: The room is big enough for our menu.
+        if (show_pos.getY() - (int)getHeight() > 0) { // NOTICE: getHeight() returns an unsigned int,
+                                                      //         must convert otherwise this expression always = true!
+            show_pos.moveBy(0, -getHeight());
+        }
+        // Case 0x02: The room is too narrow to show our menu.
+        //            At this time we show the menu on the top of the mouse boundary.
+        else {
+            show_pos.setY(mouse_bounds_absolute.getY());
+        }
+    }
 
     // set the cursor style to the default until the user hovers over an item
     // getWindow().setCursorStyle(Window::CursorStyle::Default);
