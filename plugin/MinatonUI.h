@@ -51,7 +51,7 @@ protected:
     // -------------------------------------------------------------------
     // Right-click menu implementation
 
-    void initMenuForTest();
+    void initRightClickMenu();
     void menuItemSelected(const int id) override;
     bool onMouse(const MouseEvent& ev) override;
     bool onMotion(const MotionEvent& ev) override;

@@ -110,7 +110,7 @@ MinatonUI::MinatonUI()
     fPresetManager = new MinatonPresetManager(this);
 
     // Menu (example)
-    initMenuForTest();
+    initRightClickMenu();
 }
 
 void MinatonUI::parameterChanged(uint32_t index, float value)
