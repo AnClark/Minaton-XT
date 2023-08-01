@@ -24,6 +24,9 @@ void MinatonUI::menuItemSelected(const int id)
     // Apply preset patch
     const int patchId = id - MENU_FIRST_PRESET;
     fPresetManager->loadPatchById(patchId);
+
+    // Mark currently selected preset
+    fRightClickMenu->setItemSelected(id);
 }
 
 /**
