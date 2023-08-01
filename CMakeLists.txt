@@ -7,6 +7,9 @@ project (minaton
 
 add_subdirectory (dpf)
 
+# Add our CMake extention module path
+list (APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 #
 # Manage dependencies
 #
@@ -103,6 +106,7 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
         plugin/MinatonArtwork.cpp
+        plugin/MinatonPresets.cpp
     FILES_COMMON
         plugin/MinatonParams.cpp
 )
@@ -132,3 +136,31 @@ else ()
 endif ()
 
 target_link_libraries (${PROJECT_NAME} PRIVATE ${LINK_LIBSAMPLERATE} ${LINK_LIBSNDFILE})
+
+#
+# Convert factory patches into C array
+# Should be included after dpf_add_plugin().
+#
+
+include (FactoryPresets)
+
+#
+# Context menu support
+#
+
+# Menu widget by Wolf Plugins (https://github.com/wolf-plugins/wolf-shaper)
+set (WOLF_WIDGETS_SOURCE
+    ext/WolfWidgets/Margin.cpp
+    ext/WolfWidgets/WolfWidget.cpp
+    ext/WolfWidgets/MenuWidget.cpp
+    ext/WolfWidgets/Fonts/chivo_bold.cpp
+)
+
+target_sources (${PROJECT_NAME}-ui PRIVATE
+    ${WOLF_WIDGETS_SOURCE}
+    plugin/MinatonUIMenu.cpp
+)
+
+target_include_directories (${PROJECT_NAME}-ui PRIVATE
+    ext/WolfWidgets
+)

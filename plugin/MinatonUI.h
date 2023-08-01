@@ -2,6 +2,7 @@
 
 #include "DistrhoUI.hpp"
 #include "ImageWidgets.hpp"
+#include "MenuWidget.hpp"
 
 #include "MinatonParams.h"
 
@@ -10,6 +11,10 @@ using DGL_NAMESPACE::ImageButton;
 using DGL_NAMESPACE::ImageKnob;
 using DGL_NAMESPACE::ImageSlider;
 using DGL_NAMESPACE::ImageSwitch;
+
+class MinatonPresetManager;
+
+using DISTRHO::MenuWidget;
 
 START_NAMESPACE_DISTRHO
 
@@ -20,6 +25,7 @@ class MinatonUI : public UI,
                   public ImageKnob::Callback,
                   public ImageSlider::Callback,
                   public ImageSwitch::Callback,
+                  public MenuWidget::Callback,
                   public IdleCallback {
 public:
     MinatonUI();
@@ -41,6 +47,14 @@ protected:
     void imageSliderDragStarted(ImageSlider* slider) override;
     void imageSliderDragFinished(ImageSlider* slider) override;
     void imageSliderValueChanged(ImageSlider* slider, float value) override;
+
+    // -------------------------------------------------------------------
+    // Right-click menu implementation
+
+    void initRightClickMenu();
+    void menuItemSelected(const int id) override;
+    bool onMouse(const MouseEvent& ev) override;
+    bool onMotion(const MotionEvent& ev) override;
 
     void onDisplay() override;
 
@@ -96,6 +110,8 @@ private:
 
     ScopedPointer<ImageButton> fPanic;
 
+    ScopedPointer<MenuWidget> fRightClickMenu;
+
     // -------------------------------------------------------------------
     // Helpers
 
@@ -108,6 +124,12 @@ private:
     // Control plugin from UI side
 
     void panic();
+
+    // -------------------------------------------------------------------
+    // Preset manager instance
+
+    ScopedPointer<MinatonPresetManager> fPresetManager;
+    friend class ::MinatonPresetManager;
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MinatonUI)
 };

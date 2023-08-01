@@ -1,0 +1,2 @@
+/* Define output source code name of factory bank */
+#define _BANK_CODE_NAME "@BANK_CODE_NAME@"
