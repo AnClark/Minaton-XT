@@ -32,7 +32,7 @@ public:
     // Load patch
 
     int loadPatchById(uint32_t);
-    void loadDefaultPatch();
+    void loadDefaultPatch(bool writeLog = false);
 
     // -------------------------------------------------------------------
     // Query built-in preset

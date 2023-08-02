@@ -49,8 +49,14 @@ int MinatonPresetManager::loadPatchById(uint32_t patchId)
     return 0;
 }
 
-void MinatonPresetManager::loadDefaultPatch()
+void MinatonPresetManager::loadDefaultPatch(bool writeLog)
 {
+    // Write log only if there's demand (e.g. explciitly calling it from UI side),
+    // since this method is also called by loadPatchById() internally
+    if (writeLog) {
+        d_stderr("[PRESET] Loading default preset.");
+    }
+
     for (int param = 0; param < PARAM_COUNT; param++) {
         _applyParameter(param, MinatonParams::paramDefaultValue(MinatonParamId(param)));
     }
