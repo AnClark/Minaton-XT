@@ -3,6 +3,7 @@
 
 enum MinatonMenuId {
     MENU_ABOUT = 1200,
+    MENU_DEFAULT_PRESET = 1201,
     MENU_FIRST_PRESET
 };
 
@@ -12,6 +13,7 @@ void MinatonUI::initRightClickMenu()
 
     // Preset menu
     fRightClickMenu->addSection("Presets");
+    fRightClickMenu->addItem(MENU_DEFAULT_PRESET, "Default Patch");
     for (uint32_t i = 0; i < fPresetManager->getEmbedPresetCount(); i++) {
         fRightClickMenu->addItem(MENU_FIRST_PRESET + i, fPresetManager->getEmbedPresetById(i).name.c_str());
     }
@@ -22,8 +24,12 @@ void MinatonUI::initRightClickMenu()
 void MinatonUI::menuItemSelected(const int id)
 {
     // Apply preset patch
-    const int patchId = id - MENU_FIRST_PRESET;
-    fPresetManager->loadPatchById(patchId);
+    if (id == MENU_DEFAULT_PRESET) {
+        fPresetManager->loadDefaultPatch(true); // Pass param "true" means write log to console
+    } else {
+        const int patchId = id - MENU_FIRST_PRESET;
+        fPresetManager->loadPatchById(patchId);
+    }
 
     // Mark currently selected preset
     fRightClickMenu->setItemSelected(id);
