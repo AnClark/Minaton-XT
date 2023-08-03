@@ -108,7 +108,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         // Once true, clear ring buffer and return.
         static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
         if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
-            for (int x = 0; x < frames; x++) {
+            for (int x = 0; x < amsh.frames; x++) {
                 outL[x] = 0;
                 outR[x] = 0;
             }
@@ -119,7 +119,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
         //   - If not, perform a resample on final mix.
         if (fSampleRate == 44100.0f) {
-            for (unsigned int x = 0; x < frames; x++) {
+            for (unsigned int x = 0; x < amsh.frames; x++) {
                 _processAudioFrame(outL, outR, x);
             }
         } else {
@@ -132,7 +132,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             //     4. Put the resampled frames to audio buffer.
             // Based on @cpuimage's resample algorithm.
 
-            const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, frames);
+            const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, amsh.frames);
 
             for (uint32_t x = 0; x < expect_input_size; x++) {
                 _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
@@ -141,8 +141,8 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             // Process each channel respectively.
             // Note: The resampler functions are originally designed for interleaved WAV files.
             const int channels = 1;
-            Resample_f32(buffer_before_resample_l, outL, 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
-            Resample_f32(buffer_before_resample_r, outR, 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
+            Resample_f32(buffer_before_resample_l, outL, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
+            Resample_f32(buffer_before_resample_r, outR, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
         }
     }
 }
