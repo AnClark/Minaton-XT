@@ -122,9 +122,9 @@ void minaton_synth_dpf::panic()
     // "dormant" is the state when envelope ceases.
     // See minaton_synth::dca_update(): part `if (envelope1.state == release)`.
 
-    envelope1.state = dormant;
+    envelope1.state = ENV_STATE_DORMANT;
     envelope1.level = 0;
-    envelope2.state = dormant;
+    envelope2.state = ENV_STATE_DORMANT;
     envelope2.level = 0;
 
     // Remember to reset DCO position as well

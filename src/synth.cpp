@@ -477,14 +477,14 @@ void minaton_synth::init_dcas()
     envelope1.decay = 0;
     envelope1.sustain = 0;
     envelope1.release = 0;
-    envelope1.state = dormant;
+    envelope1.state = ENV_STATE_DORMANT;
     envelope1.level = 0;
 
     envelope2.attack = 0;
     envelope2.decay = 0;
     envelope2.sustain = 0;
     envelope2.release = 0;
-    envelope2.state = dormant;
+    envelope2.state = ENV_STATE_DORMANT;
     envelope2.level = 0;
 }
 
@@ -512,31 +512,31 @@ void minaton_synth::dca_update()
     //-----------------------------------------------
     // PROCESS ENVELOPE 1
 
-    if (envelope1.state == attack) {
+    if (envelope1.state == ENV_STATE_ATTACK) {
         if (envelope1.level < 1) {
             if (envelope1.attack == 0) {
-                envelope1.state = decay;
+                envelope1.state = ENV_STATE_DECAY;
             }
             envelope1.level += pow(0.8, envelope1.attack);
         } else {
-            envelope1.state = decay;
+            envelope1.state = ENV_STATE_DECAY;
         }
     }
 
-    if (envelope1.state == decay) {
+    if (envelope1.state == ENV_STATE_DECAY) {
         if (envelope1.level > envelope1.sustain) {
             envelope1.level -= pow(0.8, envelope1.decay);
         } else {
-            envelope1.state = wait;
+            envelope1.state = ENV_STATE_WAIT;
             envelope1.level = envelope1.sustain;
         }
     }
 
-    if (envelope1.state == release) {
+    if (envelope1.state == ENV_STATE_RELEASE) {
         if (envelope1.level > 0) {
             envelope1.level -= pow(0.8, envelope1.release);
         } else {
-            envelope1.state = dormant;
+            envelope1.state = ENV_STATE_DORMANT;
             envelope1.level = 0;
         }
     }
@@ -544,31 +544,31 @@ void minaton_synth::dca_update()
     //-----------------------------------------------
     // PROCESS ENVELOPE 2
 
-    if (envelope2.state == attack) {
+    if (envelope2.state == ENV_STATE_ATTACK) {
         if (envelope2.level < 1) {
             if (envelope2.attack == 0) {
                 envelope2.level = 1;
             }
             envelope2.level += pow(0.8, envelope2.attack);
         } else {
-            envelope2.state = decay;
+            envelope2.state = ENV_STATE_DECAY;
         }
     }
 
-    if (envelope2.state == decay) {
+    if (envelope2.state == ENV_STATE_DECAY) {
         if (envelope2.level > envelope2.sustain) {
             envelope2.level -= pow(0.8, envelope2.decay);
         } else {
-            envelope2.state = wait;
+            envelope2.state = ENV_STATE_WAIT;
             envelope2.level = envelope2.sustain;
         }
     }
 
-    if (envelope2.state == release) {
+    if (envelope2.state == ENV_STATE_RELEASE) {
         if (envelope2.level > 0) {
             envelope2.level -= pow(0.8, envelope2.release);
         } else {
-            envelope2.state = dormant;
+            envelope2.state = ENV_STATE_DORMANT;
             envelope2.level = 0;
         }
     }
@@ -611,7 +611,7 @@ void minaton_synth::set_envelope1_release(float value)
 
 void minaton_synth::trigger_envelope1()
 {
-    envelope1.state = attack;
+    envelope1.state = ENV_STATE_ATTACK;
     // envelope1.level = 0; // meant to set the level back to zero to retrigger on legato mode, but causes clicks, need to fade it instead, work for later
 }
 
@@ -620,7 +620,7 @@ void minaton_synth::trigger_envelope1()
 
 void minaton_synth::release_envelope1()
 {
-    envelope1.state = release;
+    envelope1.state = ENV_STATE_RELEASE;
 }
 
 //---------------------------------------------------------
@@ -670,7 +670,7 @@ void minaton_synth::trigger_envelope2()
 
 void minaton_synth::release_envelope2()
 {
-    envelope2.state = release;
+    envelope2.state = ENV_STATE_RELEASE;
 }
 
 //---------------------------------------------------------

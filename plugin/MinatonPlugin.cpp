@@ -16,11 +16,6 @@ MinatonPlugin::MinatonPlugin()
     fSynthesizer->init_dcas();
     fSynthesizer->init_dcf();
 
-    fSynthesizer->attack = 0;
-    fSynthesizer->decay = 1;
-    fSynthesizer->wait = 2;
-    fSynthesizer->release = 3;
-    fSynthesizer->dormant = 4;
     fSynthesizer->selectivity = 90;
     fSynthesizer->gain1_left = 0;
     fSynthesizer->gain2_left = 1;

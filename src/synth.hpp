@@ -25,6 +25,14 @@ public:
     float level;
 };
 
+enum envelop_state {
+    ENV_STATE_ATTACK = 0,
+    ENV_STATE_DECAY,
+    ENV_STATE_WAIT,
+    ENV_STATE_RELEASE,
+    ENV_STATE_DORMANT
+};
+
 //----------------------------------------------------------------------------
 
 class minaton_synth {
@@ -54,11 +62,6 @@ public:
     float decay2;
     float sustain2;
     float release2;
-    int attack;
-    int decay;
-    int wait;
-    int release;
-    int dormant;
     float selectivity, gain1_left, gain1_right, gain2_left, gain2_right, ratio_left, ratio_right, cap_left, cap_right;
 
     //=========================================================
