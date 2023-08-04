@@ -1,5 +1,6 @@
 #include "MinatonPlugin.h"
 #include "DistrhoPlugin.hpp"
+#include "DistrhoPluginUtils.hpp"
 #include "MinatonParams.h"
 
 #include "resampler.hpp"
@@ -79,55 +80,65 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 {
     uint32_t event_index;
 
-    for (event_index = 0; event_index < midiEventCount; ++event_index) {
-        _processMidi(midiEvents[event_index].data, midiEvents[event_index].size);
-    }
+    // Here we use DPF AudioMidiSyncHelper to make sure audio and MIDI plays simultaneously.
+    // Without sync, audio may have a lag of ~15ms.
+    for (AudioMidiSyncHelper amsh(outputs, frames, midiEvents, midiEventCount); amsh.nextEvent();) {
+        // Use output ports provided by AudioMidiSyncHelper
+        float* const outL = amsh.outputs[0];
+        float* const outR = amsh.outputs[1];
 
-    //	++control_delay;
-
-    // if (control_delay>20)
-    //{
-    //		control_delay = 0;
-
-    // Check if no oscillators enabled or volume at zero.
-    // Once true, clear ring buffer and return.
-    static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
-    if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
-        for (int x = 0; x < frames; x++) {
-            outputs[0][x] = 0;
-            outputs[1][x] = 0;
-        }
-        return;
-    }
-
-    // Generate and output audio frames.
-    //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
-    //   - If not, perform a resample on final mix.
-    if (fSampleRate == 44100.0f) {
-        for (unsigned int x = 0; x < frames; x++) {
-            _processAudioFrame(outputs[0], outputs[1], x);
-        }
-    } else {
-        // Resample principle: Fill in the audio buffer with resampled frames.
-        //     For example, audio buffer's size is 512, and target sample rate is 96000 Hz.
-        //     1. Find out an input sample count so that resampler can output just 512 samples.
-        //        Result is 235.2.
-        //     2. Run _processAudioFrame(), and generate 235 samples (decimal is floored).
-        //     3. Run Resample_f32() to resample two channels. It will output 512 samples.
-        //     4. Put the resampled frames to audio buffer.
-        // Based on @cpuimage's resample algorithm.
-
-        const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, frames);
-
-        for (uint32_t x = 0; x < expect_input_size; x++) {
-            _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
+        // Process MIDI events
+        for (uint32_t i = 0; i < amsh.midiEventCount; ++i) {
+            const MidiEvent& ev(amsh.midiEvents[i]);
+            _processMidi(ev.data, ev.size);
         }
 
-        // Process each channel respectively.
-        // Note: The resampler functions are originally designed for interleaved WAV files.
-        const int channels = 1;
-        Resample_f32(buffer_before_resample_l, outputs[0], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
-        Resample_f32(buffer_before_resample_r, outputs[1], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
+        //	++control_delay;
+
+        // if (control_delay>20)
+        //{
+        //		control_delay = 0;
+
+        // Check if no oscillators enabled or volume at zero.
+        // Once true, clear ring buffer and return.
+        static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
+        if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
+            for (int x = 0; x < amsh.frames; x++) {
+                outL[x] = 0;
+                outR[x] = 0;
+            }
+            return;
+        }
+
+        // Generate and output audio frames.
+        //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
+        //   - If not, perform a resample on final mix.
+        if (fSampleRate == 44100.0f) {
+            for (unsigned int x = 0; x < amsh.frames; x++) {
+                _processAudioFrame(outL, outR, x);
+            }
+        } else {
+            // Resample principle: Fill in the audio buffer with resampled frames.
+            //     For example, audio buffer's size is 512, and target sample rate is 96000 Hz.
+            //     1. Find out an input sample count so that resampler can output just 512 samples.
+            //        Result is 235.2.
+            //     2. Run _processAudioFrame(), and generate 235 samples (decimal is floored).
+            //     3. Run Resample_f32() to resample two channels. It will output 512 samples.
+            //     4. Put the resampled frames to audio buffer.
+            // Based on @cpuimage's resample algorithm.
+
+            const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, amsh.frames);
+
+            for (uint32_t x = 0; x < expect_input_size; x++) {
+                _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
+            }
+
+            // Process each channel respectively.
+            // Note: The resampler functions are originally designed for interleaved WAV files.
+            const int channels = 1;
+            Resample_f32(buffer_before_resample_l, outL, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
+            Resample_f32(buffer_before_resample_r, outR, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
+        }
     }
 }
 
