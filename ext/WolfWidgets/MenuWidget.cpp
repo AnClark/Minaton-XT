@@ -55,9 +55,12 @@ void MenuWidget::show(const Point<int>& parent_pos_absolute,
             show_pos.moveBy(0, -getHeight());
         }
         // Case 0x02: The room is too narrow to show our menu.
-        //            At this time we show the menu on the top of the mouse boundary.
+        //            At this time we show the menu according to mouse position/
         else {
-            show_pos.setY(mouse_bounds_absolute.getY());
+            if (show_pos.getY() < (int)mouse_bounds_absolute.getHeight() / 2)
+                show_pos.setY(mouse_bounds_absolute.getHeight() - getHeight());
+            else
+                show_pos.setY(mouse_bounds_absolute.getY());
         }
     }
 
