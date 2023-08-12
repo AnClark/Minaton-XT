@@ -50,7 +50,7 @@ struct Memory {
 class minaton_synth_dpf : public minaton_synth {
 public:
     void init();
-    int add_wave(string, const unsigned char*, size_t size);
+    int add_wave(int, string, const unsigned char*, size_t size);
 
     void set_output_mode(bool mode) { output_mode = minaton_output_mode(mode); }
     void set_dco_output_channel(int dco_number, minaton_channel_mode channel);

@@ -14,6 +14,29 @@
 
 using namespace std;
 
+class minaton_dco {
+public:
+    bool state;
+    int delay;
+    float frequency;
+    float old_frequency;
+    float volume;
+    float pulsewidth;
+    int out_position;
+    int out_length;
+    int wave_id;
+    float inertia;
+    float lfo1_amount;
+    float lfo2_amount;
+};
+
+class minaton_wave {
+public:
+    float* sample;
+    string name;
+    SF_INFO sfinfo;
+};
+
 class adsr {
 public:
     float attack;
@@ -31,6 +54,27 @@ enum envelop_state {
     ENV_STATE_WAIT,
     ENV_STATE_RELEASE,
     ENV_STATE_DORMANT
+};
+
+enum osc_id {
+    DCO_ONE = 0,
+    DCO_TWO,
+    DCO_THREE,
+    LFO_ONE,
+    LFO_TWO,
+    OSC_COUNT
+};
+
+enum wave_id {
+    WAVE_SINE = 0,
+    WAVE_SAW,
+    WAVE_SQUARE,
+    WAVE_TRIANGLE,
+    WAVE_NOISE, // dummy wave in actual
+    WAVE_SLOW_SINE,
+    WAVE_SLOW_SAW,
+    WAVE_SLOW_SQUARE,
+    WAVES_COUNT
 };
 
 //----------------------------------------------------------------------------
@@ -150,20 +194,8 @@ public:
     int error_sc;
     SRC_STATE* src_test;
     SRC_DATA mySampleData;
-    int number_of_dcos;
 
-    bool dco_state[5];
-    int dco_delay[5];
-    float dco_frequency[5];
-    float dco_old_frequency[5];
-    float dco_volume[5];
-    float dco_pulsewidth[5];
-    int dco_out_position[5];
-    int dco_out_length[5];
-    int dco_wave[5];
-    float dco_inertia[5];
-    float dco_lfo1_amount[5];
-    float dco_lfo2_amount[5];
+    minaton_dco dco[OSC_COUNT];
 
     float dco1_buffer[4096];
     float dco2_buffer[4096];
@@ -176,10 +208,7 @@ public:
 
     void set_freq(int, float);
 
-    int number_of_waves;
-    float* waves_sample[16];
-    string waves_name[16];
-    SF_INFO waves_sfinfo[16];
+    minaton_wave waves[WAVES_COUNT];
 
     SNDFILE *infile, *outfile;
 
@@ -190,8 +219,8 @@ public:
     void dco_on(int);
     void dco_off(int);
     bool get_dco_state(int);
-    int add_wave(string, string);
-    void add_dco();
+    int add_wave(int, string, string);
+    void add_dco(int);
     float get_dco_out(int);
     float dco_cycle(int);
     float get_dco_frequency(int);

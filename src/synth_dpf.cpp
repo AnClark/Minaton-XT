@@ -36,47 +36,46 @@ const unsigned int wave_1Hz_squareDataSize = 88246;
 
 void minaton_synth_dpf::init()
 {
-    number_of_waves = 0;
 
-    add_wave("sine", minaton_waves::wave_440Hz_sineData, minaton_waves::wave_440Hz_sineDataSize);
-    add_wave("saw", minaton_waves::wave_440Hz_sawData, minaton_waves::wave_440Hz_sawDataSize);
-    add_wave("square", minaton_waves::wave_440Hz_squareData, minaton_waves::wave_440Hz_squareDataSize);
-    add_wave("triangle", minaton_waves::wave_440Hz_triangleData, minaton_waves::wave_440Hz_triangleDataSize);
-    add_wave("triangle", minaton_waves::wave_440Hz_triangleData, minaton_waves::wave_440Hz_triangleDataSize); // dummy wave white noise generator is #4
+    add_wave(WAVE_SINE, "sine", minaton_waves::wave_440Hz_sineData, minaton_waves::wave_440Hz_sineDataSize);
+    add_wave(WAVE_SAW, "saw", minaton_waves::wave_440Hz_sawData, minaton_waves::wave_440Hz_sawDataSize);
+    add_wave(WAVE_SQUARE, "square", minaton_waves::wave_440Hz_squareData, minaton_waves::wave_440Hz_squareDataSize);
+    add_wave(WAVE_TRIANGLE, "triangle", minaton_waves::wave_440Hz_triangleData, minaton_waves::wave_440Hz_triangleDataSize);
+    add_wave(WAVE_NOISE, "triangle", minaton_waves::wave_440Hz_triangleData, minaton_waves::wave_440Hz_triangleDataSize); // dummy wave white noise generator is #4
 
-    add_wave("slow sine", minaton_waves::wave_1Hz_sineData, minaton_waves::wave_1Hz_sineDataSize);
-    add_wave("slow saw", minaton_waves::wave_1Hz_sawData, minaton_waves::wave_1Hz_sawDataSize);
-    add_wave("slow square", minaton_waves::wave_1Hz_squareData, minaton_waves::wave_1Hz_squareDataSize);
+    add_wave(WAVE_SLOW_SINE, "slow sine", minaton_waves::wave_1Hz_sineData, minaton_waves::wave_1Hz_sineDataSize);
+    add_wave(WAVE_SLOW_SAW, "slow saw", minaton_waves::wave_1Hz_sawData, minaton_waves::wave_1Hz_sawDataSize);
+    add_wave(WAVE_SLOW_SQUARE, "slow square", minaton_waves::wave_1Hz_squareData, minaton_waves::wave_1Hz_squareDataSize);
 
     init_src();
 
-    number_of_dcos = 0;
+    add_dco(DCO_ONE);
+    set_dco_wave(DCO_ONE, WAVE_SAW);
+    set_dco_frequency(DCO_ONE, 1);
 
-    add_dco();
-    set_dco_wave(0, 1);
-    set_dco_frequency(0, 1);
+    add_dco(DCO_TWO);
+    set_dco_wave(DCO_TWO, WAVE_SAW);
+    set_dco_frequency(DCO_TWO, 1);
 
-    add_dco();
-    set_dco_wave(1, 1);
-    set_dco_frequency(1, 1);
+    add_dco(DCO_THREE);
+    set_dco_wave(DCO_THREE, WAVE_SAW);
+    set_dco_frequency(DCO_THREE, 1);
 
-    add_dco();
-    set_dco_wave(2, 1);
-    set_dco_frequency(2, 1);
+    add_dco(LFO_ONE);
+    set_dco_wave(LFO_ONE, WAVE_SLOW_SINE);
+    set_dco_frequency(LFO_ONE, 0.0001);
 
-    add_dco();
-    set_dco_wave(3, 5);
-    set_dco_frequency(3, 0.0001);
-
-    add_dco();
-    set_dco_wave(4, 5);
-    set_dco_frequency(4, 0.0001);
+    add_dco(LFO_TWO);
+    set_dco_wave(LFO_TWO, WAVE_SLOW_SINE);
+    set_dco_frequency(LFO_TWO, 0.0001);
 
     init_dcas();
 }
 
-int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t size)
+int minaton_synth_dpf::add_wave(int number, string name, const unsigned char* data, size_t size)
 {
+    minaton_wave& current_wave = this->waves[number];
+
     // If the file is already opened, first close it
     // if (infile)
     //    sf_close(infile);
@@ -95,24 +94,22 @@ int minaton_synth_dpf::add_wave(string name, const unsigned char* data, size_t s
 
     int readcount;
 
-    waves_name[number_of_waves] = name;
+    current_wave.name = name;
 
-    if (!(infile = sf_open_virtual(&io, SFM_READ, &waves_sfinfo[number_of_waves], &m_memory))) {
+    if (!(infile = sf_open_virtual(&io, SFM_READ, &current_wave.sfinfo, &m_memory))) {
         cout << "Unable to open wave from memory - " << sf_strerror(infile) << endl;
         sf_perror(NULL);
         return 1;
     }
 
-    waves_sample[number_of_waves] = new float[waves_sfinfo[number_of_waves].frames * waves_sfinfo[number_of_waves].channels];
-    readcount = sf_read_float(infile, waves_sample[number_of_waves], (waves_sfinfo[number_of_waves].channels * waves_sfinfo[number_of_waves].frames));
+    current_wave.sample = new float[current_wave.sfinfo.frames * current_wave.sfinfo.channels];
+    readcount = sf_read_float(infile, current_wave.sample, (current_wave.sfinfo.channels * current_wave.sfinfo.frames));
 
     sf_close(infile);
 
-    // cout << "Loaded waveform - " << name << waves_sfinfo[number_of_waves].frames << endl;
+    // cout << "Loaded waveform - " << name << current_wave.sfinfo.frames << endl;
 
-    ++number_of_waves;
-
-    return number_of_waves - 1;
+    return readcount;
 }
 
 void minaton_synth_dpf::panic()
@@ -137,7 +134,7 @@ void minaton_synth_dpf::reset_dco_out_position()
     // This can avoid weird stereo spectrum among the 3 DCOs (e.g. when after resetting LFO sends to 0)
 
     for (uint8_t i = 0; i < 5; i++)
-        dco_out_position[i] = 0;
+        dco[i].out_position = 0;
 }
 
 void minaton_synth_dpf::set_dco_output_channel(int dco_number, minaton_channel_mode channel)

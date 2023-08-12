@@ -12,56 +12,53 @@ void minaton_synth::init()
 {
 
     stringstream ss;
-    number_of_waves = 0;
 
     ss.str("");
     ss << bundle_path << "waves/440Hz-sine.wav";
-    add_wave("sine", ss.str());
+    add_wave(0, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/440Hz-saw.wav";
-    add_wave("sine", ss.str());
+    add_wave(1, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/440Hz-square.wav";
-    add_wave("sine", ss.str());
+    add_wave(2, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/440Hz-triangle.wav";
-    add_wave("sine", ss.str());
+    add_wave(3, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/440Hz-triangle.wav"; // dummy wave white noise generator is #4
-    add_wave("sine", ss.str());
+    add_wave(4, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/1Hz-sine.wav";
-    add_wave("sine", ss.str());
+    add_wave(5, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/1Hz-saw.wav";
-    add_wave("sine", ss.str());
+    add_wave(6, "sine", ss.str());
     ss.str("");
     ss << bundle_path << "waves/1Hz-square.wav";
-    add_wave("sine", ss.str());
+    add_wave(7, "sine", ss.str());
 
     init_src();
 
-    number_of_dcos = 0;
+    add_dco(DCO_ONE);
+    set_dco_wave(DCO_ONE, WAVE_SAW);
+    set_dco_frequency(DCO_ONE, 1);
 
-    add_dco();
-    set_dco_wave(0, 1);
-    set_dco_frequency(0, 1);
+    add_dco(DCO_TWO);
+    set_dco_wave(DCO_TWO, WAVE_SAW);
+    set_dco_frequency(DCO_TWO, 1);
 
-    add_dco();
-    set_dco_wave(1, 1);
-    set_dco_frequency(1, 1);
+    add_dco(DCO_THREE);
+    set_dco_wave(DCO_THREE, WAVE_SAW);
+    set_dco_frequency(DCO_THREE, 1);
 
-    add_dco();
-    set_dco_wave(2, 1);
-    set_dco_frequency(2, 1);
+    add_dco(LFO_ONE);
+    set_dco_wave(LFO_ONE, WAVE_SLOW_SINE);
+    set_dco_frequency(LFO_ONE, 0.0001);
 
-    add_dco();
-    set_dco_wave(3, 5);
-    set_dco_frequency(3, 0.0001);
-
-    add_dco();
-    set_dco_wave(4, 5);
-    set_dco_frequency(4, 0.0001);
+    add_dco(LFO_TWO);
+    set_dco_wave(LFO_TWO, WAVE_SLOW_SINE);
+    set_dco_frequency(LFO_TWO, 0.0001);
 
     init_dcas();
 }
@@ -73,9 +70,9 @@ void minaton_synth::cleanup()
 
     // cout << "freeing wavetables........." << endl;
 
-    for (int x = 0; x < number_of_waves; x++) {
+    for (int x = 0; x < WAVES_COUNT; x++) {
         // cout << waves_name[x] << endl;
-        free(waves_sample[x]);
+        free(waves[x].sample);
     }
 
     // cout << "freeing the secret rabbit........" << endl;
@@ -102,39 +99,40 @@ void minaton_synth::init_dcf()
 
 void minaton_synth::set_freq(int dco_number, float f)
 {
+    minaton_dco& target_dco = this->dco[dco_number];
 
-    dco_frequency[dco_number] = f;
+    target_dco.frequency = f;
 
-    if (dco_lfo1_amount[dco_number] > 0) {
-        f = f + (pow(1.059463, (dco_lfo1_amount[dco_number]) * (get_dco_out(3))) - 1);
+    if (target_dco.lfo1_amount > 0) {
+        f = f + (pow(1.059463, (target_dco.lfo1_amount) * (get_dco_out(3))) - 1);
     }
 
-    if (dco_lfo2_amount[dco_number] > 0) {
-        f = f + (pow(1.059463, (dco_lfo2_amount[dco_number]) * (get_dco_out(4))) - 1);
+    if (target_dco.lfo2_amount > 0) {
+        f = f + (pow(1.059463, (target_dco.lfo2_amount) * (get_dco_out(4))) - 1);
     }
 
     if (f < 0.1) {
         f = 0.1;
     }
 
-    if (dco_inertia[dco_number] == 0.5) {
-        dco_old_frequency[dco_number] = f;
+    if (target_dco.inertia == 0.5) {
+        target_dco.old_frequency = f;
     }
 
-    if (dco_inertia[dco_number] < 0.5) {
-        if (dco_old_frequency[dco_number] > f) {
-            dco_old_frequency[dco_number] = dco_old_frequency[dco_number] - dco_inertia[dco_number];
-            if (dco_old_frequency[dco_number] < f)
-                dco_old_frequency[dco_number] = f;
+    if (target_dco.inertia < 0.5) {
+        if (target_dco.old_frequency > f) {
+            target_dco.old_frequency = target_dco.old_frequency - target_dco.inertia;
+            if (target_dco.old_frequency < f)
+                target_dco.old_frequency = f;
         }
 
-        if (dco_old_frequency[dco_number] < f) {
-            dco_old_frequency[dco_number] = dco_old_frequency[dco_number] + dco_inertia[dco_number];
-            if (dco_old_frequency[dco_number] > f)
-                dco_old_frequency[dco_number] = f;
+        if (target_dco.old_frequency < f) {
+            target_dco.old_frequency = target_dco.old_frequency + target_dco.inertia;
+            if (target_dco.old_frequency > f)
+                target_dco.old_frequency = f;
         }
 
-        f = dco_old_frequency[dco_number];
+        f = target_dco.old_frequency;
     }
 
     float* buffer = &dco1_buffer[0];
@@ -148,53 +146,52 @@ void minaton_synth::set_freq(int dco_number, float f)
         buffer = &lfo2_buffer[0];
 
     src_reset(src_test);
-    mySampleData.data_in = waves_sample[dco_wave[dco_number]];
-    mySampleData.input_frames = waves_sfinfo[dco_wave[dco_number]].frames;
+    mySampleData.data_in = waves[target_dco.wave_id].sample;
+    mySampleData.input_frames = waves[target_dco.wave_id].sfinfo.frames;
     mySampleData.data_out = buffer;
-    mySampleData.output_frames = waves_sfinfo[dco_wave[dco_number]].frames / f;
+    mySampleData.output_frames = waves[target_dco.wave_id].sfinfo.frames / f;
     mySampleData.src_ratio = (float)1 / f;
     src_process(src_test, &mySampleData);
-    dco_out_length[dco_number] = mySampleData.output_frames_gen;
+    target_dco.out_length = mySampleData.output_frames_gen;
 }
 
 //----------------------
 
 void minaton_synth::set_lfo1_amount(int dco_number, float value)
 {
-    dco_lfo1_amount[dco_number] = value;
+    this->dco[dco_number].lfo1_amount = value;
 }
 
 //----------------------
 
 void minaton_synth::set_lfo2_amount(int dco_number, float value)
 {
-    dco_lfo2_amount[dco_number] = value;
+    this->dco[dco_number].lfo2_amount = value;
 }
 
 //---------------- Add new waveform ------------------
 
-int minaton_synth::add_wave(string name, string file)
+int minaton_synth::add_wave(int number, string name, string file)
 {
+    minaton_wave& current_wave = this->waves[number];
     int readcount;
 
-    waves_name[number_of_waves] = name;
+    current_wave.name = name;
 
-    if (!(infile = sf_open(file.c_str(), SFM_READ, &waves_sfinfo[number_of_waves]))) {
+    if (!(infile = sf_open(file.c_str(), SFM_READ, &current_wave.sfinfo))) {
         cout << "Unable to open input file - " << file.c_str() << " " << sf_strerror(infile) << endl;
         sf_perror(NULL);
         return 1;
     }
 
-    waves_sample[number_of_waves] = new float[waves_sfinfo[number_of_waves].frames * waves_sfinfo[number_of_waves].channels];
-    readcount = sf_read_float(infile, waves_sample[number_of_waves], (waves_sfinfo[number_of_waves].channels * waves_sfinfo[number_of_waves].frames));
+    current_wave.sample = new float[current_wave.sfinfo.frames * current_wave.sfinfo.channels];
+    readcount = sf_read_float(infile, current_wave.sample, (current_wave.sfinfo.channels * current_wave.sfinfo.frames));
 
     sf_close(infile);
 
     // cout << "Loaded waveform - " << name << waves_sfinfo[number_of_waves].frames << endl;
 
-    ++number_of_waves;
-
-    return number_of_waves - 1;
+    return readcount;
 }
 
 //---------------------------------------------------------------
@@ -212,44 +209,47 @@ void minaton_synth::init_src()
 
 //-------------------------------------------------
 
-void minaton_synth::add_dco()
+void minaton_synth::add_dco(int number)
 {
-    dco_wave[number_of_dcos] = 1;
-    dco_out_position[number_of_dcos] = 0;
-    dco_state[number_of_dcos] = false; // default state is new oscillator off
-    dco_lfo1_amount[number_of_dcos] = 0;
-    dco_lfo2_amount[number_of_dcos] = 0;
-    dco_inertia[number_of_dcos] = 0.5;
-    ++number_of_dcos;
+    minaton_dco& current_dco = this->dco[number];
+
+    current_dco.wave_id = 1;
+    current_dco.out_position = 0;
+    current_dco.state = false; // default state is new oscillator off
+    current_dco.lfo1_amount = 0;
+    current_dco.lfo2_amount = 0;
+    current_dco.inertia = 0.5;
 }
 
 //------------------------------
 
 void minaton_synth::dco_on(int number)
 {
-    dco_state[number] = true;
+    this->dco[number].state = true;
 }
 
 //------------------------------
 
 void minaton_synth::dco_off(int number)
 {
-    dco_state[number] = false;
+    this->dco[number].state = false;
 }
 
 //--------------------------------
 bool minaton_synth::get_dco_state(int number)
 {
-    return dco_state[number];
+    return this->dco[number].state;
 }
 
 //-------------------------------------------------
 
 float minaton_synth::get_dco_out(int dco_number)
 {
-    int pos = dco_out_position[dco_number];
+    const minaton_dco& target_dco = this->dco[dco_number];
 
-    if (dco_wave[dco_number] == 4) // it's white noise so output floating point random values in the range -1 to 1
+    int pos = target_dco.out_position;
+
+    if (target_dco.wave_id == 4) // it's white noise so output floating point random values in the range -1 to 1
     {
         return ((float)(rand() % 65536) / 32768) - 1;
     }
@@ -272,15 +272,17 @@ float minaton_synth::get_dco_out(int dco_number)
 
 float minaton_synth::dco_cycle(int dco_number)
 {
-    dco_out_position[dco_number]++;
+    minaton_dco& target_dco = this->dco[dco_number];
 
-    if (dco_out_position[0] == 0 && master_sync == 1) {
-        dco_out_position[1] = 0;
+    target_dco.out_position++;
+
+    if (dco[0].out_position == 0 && master_sync == 1) {
+        dco[1].out_position = 0;
     }
 
-    if (dco_out_position[dco_number] >= dco_out_length[dco_number]) {
+    if (target_dco.out_position >= target_dco.out_length) {
 
-        dco_out_position[dco_number] = 0;
+        target_dco.out_position = 0;
         if (dco_number == 0)
             update_dco1_tuning();
         if (dco_number == 1)
@@ -289,9 +291,9 @@ float minaton_synth::dco_cycle(int dco_number)
             update_dco3_tuning();
     }
 
-    int pos = dco_out_position[dco_number];
+    int pos = target_dco.out_position;
 
-    if (dco_wave[dco_number] == 4) // it's white noise so output floating point random values in the range -1 to 1
+    if (target_dco.wave_id == 4) // it's white noise so output floating point random values in the range -1 to 1
     {
         return ((float)(rand() % 65536) / 32768) - 1;
     }
@@ -314,7 +316,7 @@ float minaton_synth::dco_cycle(int dco_number)
 
 float minaton_synth::get_dco_frequency(int number)
 {
-    return dco_frequency[number];
+    return this->dco[number].frequency;
 }
 
 //-------------------------------------------------
@@ -328,42 +330,42 @@ void minaton_synth::set_dco_frequency(int number, float frequency)
 
 float minaton_synth::get_dco_volume(int number)
 {
-    return dco_volume[number];
+    return this->dco[number].volume;
 }
 
 //-------------------------------------------------
 
 void minaton_synth::set_dco_volume(int number, float volume)
 {
-    dco_volume[number] = volume;
+    this->dco[number].volume = volume;
 }
 
 //-------------------------------------------------
 
 int minaton_synth::get_dco_wave(int number)
 {
-    return dco_wave[number];
+    return this->dco[number].wave_id;
 }
 
 //-------------------------------------------------
 
 void minaton_synth::set_dco_wave(int number, int wave)
 {
-    dco_wave[number] = wave;
+    this->dco[number].wave_id = wave;
 }
 
 //-------------------------------------------------
 
 float minaton_synth::get_dco_inertia(int number)
 {
-    return dco_inertia[number];
+    return this->dco[number].inertia;
 }
 
 //-------------------------------------------------
 
 void minaton_synth::set_dco_inertia(int number, float value)
 {
-    dco_inertia[number] = value;
+    this->dco[number].inertia = value;
 }
 
 //-------------------------------------------------
@@ -420,7 +422,7 @@ int minaton_synth::get_sync_mode()
 
 float minaton_synth::get_dco_lfo1_amount(int number)
 {
-    return dco_lfo1_amount[number];
+    return this->dco[number].lfo1_amount;
 }
 
 //------------------------------------------------
@@ -428,7 +430,7 @@ float minaton_synth::get_dco_lfo1_amount(int number)
 
 float minaton_synth::get_dco_lfo2_amount(int number)
 {
-    return dco_lfo2_amount[number];
+    return this->dco[number].lfo2_amount;
 }
 
 //------------------------------------------------
@@ -437,7 +439,7 @@ void minaton_synth::update_dco1_tuning()
 {
     set_dco_frequency(0, pow(1.059463, 12 * octave1 + (pitch1 + master_note)));
 
-    if (master_sync && dco_frequency[1] < dco_frequency[0]) {
+    if (master_sync && dco[1].frequency < dco[0].frequency) {
         set_dco_frequency(1, pow(1.059463, 12 * octave2 + (pitch2 + master_note)));
     }
 }

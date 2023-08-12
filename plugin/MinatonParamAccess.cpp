@@ -21,51 +21,51 @@ float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
 
     // DCO Wave 1
     case PARAM_WAVE_ONE:
-        return fSynthesizer->dco_wave[0];
+        return fSynthesizer->get_dco_wave(DCO_ONE);
     case PARAM_INERTIA_ONE:
-        return fSynthesizer->dco_inertia[0];
+        return fSynthesizer->get_dco_inertia(DCO_ONE);
 
     // DCO Wave 2
     case PARAM_WAVE_TWO:
-        return fSynthesizer->dco_wave[1];
+        return fSynthesizer->get_dco_wave(DCO_TWO);
     case PARAM_INERTIA_TWO:
-        return fSynthesizer->dco_inertia[1];
+        return fSynthesizer->get_dco_inertia(DCO_TWO);
 
     // DCO Wave 3
     case PARAM_WAVE_THREE:
-        return fSynthesizer->dco_wave[2];
+        return fSynthesizer->get_dco_wave(DCO_THREE);
     case PARAM_INERTIA_THREE:
-        return fSynthesizer->dco_inertia[2];
+        return fSynthesizer->get_dco_inertia(DCO_THREE);
 
     // LFO1 Speed
     case PARAM_LFO1_SPEED:
-        return fSynthesizer->dco_frequency[3];
+        return fSynthesizer->get_dco_frequency(LFO_ONE);
     case PARAM_LFO1_WAVE:
-        return fSynthesizer->dco_wave[3];
+        return fSynthesizer->get_dco_wave(LFO_ONE);
 
     // LFO2 Speed
     case PARAM_LFO2_SPEED:
-        return fSynthesizer->dco_frequency[4];
+        return fSynthesizer->get_dco_frequency(LFO_TWO);
     case PARAM_LFO2_WAVE:
-        return fSynthesizer->dco_wave[4];
+        return fSynthesizer->get_dco_wave(LFO_TWO);
 
     // LFO1 to DCOs
     case PARAM_LFO1_DCO1_PITCH:
-        return fSynthesizer->dco_lfo1_amount[0];
+        return fSynthesizer->get_dco_lfo1_amount(DCO_ONE);
     case PARAM_LFO1_DCO2_PITCH:
-        return fSynthesizer->dco_lfo1_amount[1];
+        return fSynthesizer->get_dco_lfo1_amount(DCO_TWO);
     case PARAM_LFO1_DCO3_PITCH:
-        return fSynthesizer->dco_lfo1_amount[2];
+        return fSynthesizer->get_dco_lfo1_amount(DCO_THREE);
     case PARAM_LFO1_DCF:
         return fSynthesizer->lfo1_amount;
 
     // LFO2 to DCOs
     case PARAM_LFO2_DCO1_PITCH:
-        return fSynthesizer->dco_lfo2_amount[0];
+        return fSynthesizer->get_dco_lfo2_amount(DCO_ONE);
     case PARAM_LFO2_DCO2_PITCH:
-        return fSynthesizer->dco_lfo2_amount[1];
+        return fSynthesizer->get_dco_lfo2_amount(DCO_TWO);
     case PARAM_LFO2_DCO3_PITCH:
-        return fSynthesizer->dco_lfo2_amount[2];
+        return fSynthesizer->get_dco_lfo2_amount(DCO_THREE);
     case PARAM_LFO2_DCF:
         return fSynthesizer->lfo2_amount;
 
@@ -125,11 +125,11 @@ float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
     case PARAM_OUTPUT_MODE:
         return fSynthesizer->get_output_mode();
     case PARAM_DCO1_OUTPUT_CHANNEL:
-        return fSynthesizer->get_dco_output_channel(0);
+        return fSynthesizer->get_dco_output_channel(DCO_ONE);
     case PARAM_DCO2_OUTPUT_CHANNEL:
-        return fSynthesizer->get_dco_output_channel(1);
+        return fSynthesizer->get_dco_output_channel(DCO_TWO);
     case PARAM_DCO3_OUTPUT_CHANNEL:
-        return fSynthesizer->get_dco_output_channel(2);
+        return fSynthesizer->get_dco_output_channel(DCO_THREE);
 
     // Unused parameters
     case PARAM_FINETUNE_CENTRE_ONE:
@@ -171,55 +171,55 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
 
     // DCO Wave 1
     case PARAM_WAVE_ONE:
-        fSynthesizer->dco_wave[0] = value;
+        fSynthesizer->set_dco_wave(DCO_ONE, wave_id(value));
         break;
     case PARAM_INERTIA_ONE:
-        fSynthesizer->dco_inertia[0] = value;
+        fSynthesizer->set_dco_inertia(DCO_ONE, (int)value);
         break;
 
     // DCO Wave 2
     case PARAM_WAVE_TWO:
-        fSynthesizer->dco_wave[1] = value;
+        fSynthesizer->set_dco_wave(DCO_TWO, wave_id(value));
         break;
     case PARAM_INERTIA_TWO:
-        fSynthesizer->dco_inertia[1] = value;
+        fSynthesizer->set_dco_inertia(DCO_TWO, (int)value);
         break;
 
     // DCO Wave 3
     case PARAM_WAVE_THREE:
-        fSynthesizer->dco_wave[2] = value;
+        fSynthesizer->set_dco_wave(DCO_THREE, wave_id(value));
         break;
     case PARAM_INERTIA_THREE:
-        fSynthesizer->dco_inertia[2] = value;
+        fSynthesizer->set_dco_inertia(DCO_THREE, (int)value);
         break;
 
     // LFO1 Speed
     case PARAM_LFO1_SPEED:
-        fSynthesizer->set_freq(3, value);
+        fSynthesizer->set_freq(LFO_ONE, value);
         break;
     case PARAM_LFO1_WAVE:
-        fSynthesizer->dco_wave[3] = value;
-        fSynthesizer->set_freq(3, fSynthesizer->get_dco_frequency(3));
+        fSynthesizer->set_dco_wave(LFO_ONE, wave_id(value));
+        fSynthesizer->set_freq(LFO_ONE, fSynthesizer->get_dco_frequency(LFO_ONE));
         break;
 
     // LFO2 Speed
     case PARAM_LFO2_SPEED:
-        fSynthesizer->set_freq(4, value);
+        fSynthesizer->set_freq(LFO_TWO, value);
         break;
     case PARAM_LFO2_WAVE:
-        fSynthesizer->dco_wave[4] = value;
-        fSynthesizer->set_freq(4, fSynthesizer->get_dco_frequency(4));
+        fSynthesizer->set_dco_wave(LFO_TWO, wave_id(value));
+        fSynthesizer->set_freq(4, fSynthesizer->get_dco_frequency(LFO_TWO));
         break;
 
     // LFO1 to DCOs
     case PARAM_LFO1_DCO1_PITCH:
-        fSynthesizer->dco_lfo1_amount[0] = value;
+        fSynthesizer->set_dco_lfo1_amount(DCO_ONE, value);
         break;
     case PARAM_LFO1_DCO2_PITCH:
-        fSynthesizer->dco_lfo1_amount[1] = value;
+        fSynthesizer->set_dco_lfo1_amount(DCO_TWO, value);
         break;
     case PARAM_LFO1_DCO3_PITCH:
-        fSynthesizer->dco_lfo1_amount[2] = value;
+        fSynthesizer->set_dco_lfo1_amount(DCO_THREE, value);
         break;
     case PARAM_LFO1_DCF:
         fSynthesizer->lfo1_amount = value;
@@ -227,13 +227,13 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
 
     // LFO2 to DCOs
     case PARAM_LFO2_DCO1_PITCH:
-        fSynthesizer->dco_lfo2_amount[0] = value;
+        fSynthesizer->set_dco_lfo2_amount(DCO_ONE, value);
         break;
     case PARAM_LFO2_DCO2_PITCH:
-        fSynthesizer->dco_lfo2_amount[1] = value;
+        fSynthesizer->set_dco_lfo2_amount(DCO_TWO, value);
         break;
     case PARAM_LFO2_DCO3_PITCH:
-        fSynthesizer->dco_lfo2_amount[2] = value;
+        fSynthesizer->set_dco_lfo2_amount(DCO_THREE, value);
         break;
     case PARAM_LFO2_DCF:
         fSynthesizer->lfo2_amount = value;
@@ -316,13 +316,13 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
         fSynthesizer->set_output_mode(value);
         break;
     case PARAM_DCO1_OUTPUT_CHANNEL:
-        fSynthesizer->set_dco_output_channel(0, minaton_channel_mode(value));
+        fSynthesizer->set_dco_output_channel(DCO_ONE, minaton_channel_mode(value));
         break;
     case PARAM_DCO2_OUTPUT_CHANNEL:
-        fSynthesizer->set_dco_output_channel(1, minaton_channel_mode(value));
+        fSynthesizer->set_dco_output_channel(DCO_TWO, minaton_channel_mode(value));
         break;
     case PARAM_DCO3_OUTPUT_CHANNEL:
-        fSynthesizer->set_dco_output_channel(2, minaton_channel_mode(value));
+        fSynthesizer->set_dco_output_channel(DCO_THREE, minaton_channel_mode(value));
         break;
 
     // Unused parameters
