@@ -27,6 +27,8 @@ class MinatonPlugin : public Plugin {
     // Resampler data
     float *buffer_before_resample_l, *buffer_before_resample_r;
 
+    FILE* m_exported_sample_log_file;
+
 public:
     MinatonPlugin();
     ~MinatonPlugin();

@@ -38,6 +38,9 @@ MinatonPlugin::MinatonPlugin()
 
     // Initialize resample buffer
     initResampler(getBufferSize());
+
+    m_exported_sample_log_file = fopen("/tmp/minaton_output_samples.log", "w+");
+    fprintf(m_exported_sample_log_file, "============== NEW INSTANCE ==============\n");
 }
 
 MinatonPlugin::~MinatonPlugin()
@@ -45,6 +48,9 @@ MinatonPlugin::~MinatonPlugin()
     fSynthesizer->cleanup();
 
     cleanupResampler();
+
+    fprintf(m_exported_sample_log_file, "============== INSTANCE END ==============\n\n");
+    fclose(m_exported_sample_log_file);
 }
 
 void MinatonPlugin::initParameter(uint32_t index, Parameter& parameter)
@@ -124,15 +130,25 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 
         const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, frames);
 
+        fprintf(m_exported_sample_log_file, "Samples before resample (channel L), size = %lf:\n", expect_input_size);
+
         for (uint32_t x = 0; x < expect_input_size; x++) {
             _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
+            fprintf(m_exported_sample_log_file, "%f,", buffer_before_resample_l[x]);
         }
+        fprintf(m_exported_sample_log_file, "\n");
 
         // Process each channel respectively.
         // Note: The resampler functions are originally designed for interleaved WAV files.
         const int channels = 1;
-        Resample_f32(buffer_before_resample_l, outputs[0], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
+        uint32_t outputSize_L = Resample_f32(buffer_before_resample_l, outputs[0], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
         Resample_f32(buffer_before_resample_r, outputs[1], 44100, int(fSampleRate), expect_input_size / channels, channels, frames);
+
+        fprintf(m_exported_sample_log_file, "Samples AFTER resample (channel L), size = %d:\n", outputSize_L);
+        for (uint32_t x = 0; x < frames; x++) {
+            fprintf(m_exported_sample_log_file, "%f,", outputs[0][x]);
+        }
+        fprintf(m_exported_sample_log_file, "\n");
     }
 }
 
