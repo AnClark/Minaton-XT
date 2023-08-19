@@ -61,11 +61,11 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
 
     fSynthesizer->dca_update();
 
-    delay++;
-    if (delay > 20) {
+    delay_lfo++;
+    if (delay_lfo > (20 * (fSampleRate / 44100.0f))) { // Make sure LFO rate is unified among different samplerates
         fSynthesizer->dco_cycle(3);
         fSynthesizer->dco_cycle(4);
-        delay = 0;
+        delay_lfo = 0;
     }
 
     if (fSynthesizer->active1) {

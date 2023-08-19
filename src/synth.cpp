@@ -81,6 +81,7 @@ void minaton_synth::cleanup()
     // cout << "freeing the secret rabbit........" << endl;
 
     src_delete(src_test);
+    src_delete(src_resample);
 }
 //----------------- INIT DCF -----------------------------------------------------------------
 
@@ -150,11 +151,20 @@ void minaton_synth::set_freq(int dco_number, float f)
     src_reset(src_test);
     mySampleData.data_in = waves_sample[dco_wave[dco_number]];
     mySampleData.input_frames = waves_sfinfo[dco_wave[dco_number]].frames;
-    mySampleData.data_out = buffer;
+    mySampleData.data_out = buffer_before_resample;
     mySampleData.output_frames = waves_sfinfo[dco_wave[dco_number]].frames / f;
     mySampleData.src_ratio = (float)1 / f;
     src_process(src_test, &mySampleData);
     dco_out_length[dco_number] = mySampleData.output_frames_gen;
+
+    // Resample tuned waves to match host's samplerate
+    myResampleData.data_in = buffer_before_resample;
+    myResampleData.input_frames = mySampleData.output_frames_gen;
+    myResampleData.data_out = buffer;
+    myResampleData.output_frames = 524288; // As large as possible. Essential for 192000Hz
+    myResampleData.src_ratio = out_sample_rate / 44100.0f;
+    src_process(src_resample, &myResampleData);
+    dco_out_length[dco_number] = myResampleData.output_frames_gen;
 }
 
 //----------------------
@@ -203,10 +213,18 @@ void minaton_synth::init_src()
 {
     int channels = 1;
     src_test = src_new(SRC_LINEAR, channels, &error_sc);
+    src_resample = src_new(SRC_LINEAR, channels, &error_sc_resample);
+
+    set_samplerate(44100.0f);
 
     if (!src_test) {
         cout << endl
-             << "Sorry, the secret rabbit has watership downed!" << endl;
+             << "Sorry, the secret rabbit has watership downed (src_test)!" << endl;
+    }
+
+    if (!src_resample) {
+        cout << endl
+             << "Sorry, the secret rabbit has watership downed (src_resample)!" << endl;
     }
 }
 
@@ -843,6 +861,12 @@ void minaton_synth::set_lfo1_dcf_amount(float value)
 void minaton_synth::set_lfo2_dcf_amount(float value)
 {
     lfo2_amount = value;
+}
+
+void minaton_synth::set_samplerate(float value)
+{
+    out_sample_rate = value;
+    src_reset(src_resample);
 }
 
 //=========================================================

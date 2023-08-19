@@ -152,6 +152,12 @@ public:
     SRC_DATA mySampleData;
     int number_of_dcos;
 
+    int error_sc_resample;
+    float out_sample_rate;
+    SRC_STATE* src_resample;
+    SRC_DATA myResampleData;
+    float buffer_before_resample[524288];
+
     bool dco_state[5];
     int dco_delay[5];
     float dco_frequency[5];
@@ -217,6 +223,8 @@ public:
     void update_dco1_tuning();
     void update_dco2_tuning();
     void update_dco3_tuning();
+
+    void set_samplerate(float);
 
     //=========================================================
     //-- FILE ROUTINES

@@ -24,9 +24,6 @@ class MinatonPlugin : public Plugin {
     int last_note;
     int control_delay;
 
-    // Resampler data
-    float *buffer_before_resample_l, *buffer_before_resample_r;
-
 public:
     MinatonPlugin();
     ~MinatonPlugin();
@@ -118,10 +115,6 @@ private:
 
     float _obtainSynthParameter(MinatonParamId index) const;
     void _applySynthParameter(MinatonParamId index, float value);
-
-    void initResampler(uint32_t bufferSize);
-    void reinitResampler(uint32_t bufferSize, uint32_t sampleRate);
-    void cleanupResampler();
 
     // ----------------------------------------------------------------------------------------------------------------
     // Processors
