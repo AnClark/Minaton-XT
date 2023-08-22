@@ -9,6 +9,8 @@
 
 #include <memory>
 
+constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 16384;
+
 START_NAMESPACE_DISTRHO
 
 class MinatonPlugin : public Plugin {
@@ -26,6 +28,10 @@ class MinatonPlugin : public Plugin {
 
     // Resampler data
     float *buffer_before_resample_l, *buffer_before_resample_r;
+
+    float buffer_after_resample_l[MAX_RESAMPLED_BUFFER_SIZE], buffer_after_resample_r[MAX_RESAMPLED_BUFFER_SIZE];
+    uint64_t resampled_size, resampled_size_l, resampled_size_r;
+    uint32_t resample_buffer_read_index;
 
 public:
     MinatonPlugin();
