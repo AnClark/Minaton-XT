@@ -3,14 +3,16 @@
 #include "DistrhoPluginUtils.hpp"
 #include "MinatonParams.h"
 
-#include "resampler.hpp"
-
 START_NAMESPACE_DISTRHO
 
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
     , buffer_before_resample_l(nullptr)
     , buffer_before_resample_r(nullptr)
+    , m_src_master_resample_l(nullptr)
+    , m_src_master_resample_r(nullptr)
+    , resample_buffer_read_index(0)
+    , resampled_size(0)
 {
     // TODO: Integrate waves as internal resources
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
@@ -80,73 +82,114 @@ void MinatonPlugin::activate()
 
 void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, const MidiEvent* midiEvents, uint32_t midiEventCount)
 {
-    uint32_t event_index;
+    uint32_t frame_index = 0;
 
-    // Here we use DPF AudioMidiSyncHelper to make sure audio and MIDI plays simultaneously.
-    // Without sync, audio may have a lag of ~15ms.
-    for (AudioMidiSyncHelper amsh(outputs, frames, midiEvents, midiEventCount); amsh.nextEvent();) {
-        // Use output ports provided by AudioMidiSyncHelper
-        float* const outL = amsh.outputs[0];
-        float* const outR = amsh.outputs[1];
+    // Use output ports provided by AudioMidiSyncHelper
+    float* const outL = outputs[0];
+    float* const outR = outputs[1];
 
-        // Process MIDI events
-        for (uint32_t i = 0; i < amsh.midiEventCount; ++i) {
-            const MidiEvent& ev(amsh.midiEvents[i]);
-            _processMidi(ev.data, ev.size);
+    // Check if no oscillators enabled or volume at zero.
+    // Once true, clear ring buffer and return.
+    static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
+    if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
+        for (int x = 0; x < frames; x++) {
+            outL[x] = 0;
+            outR[x] = 0;
         }
+        return;
+    }
 
-        //	++control_delay;
+    // Process MIDI events
+    for (uint32_t i = 0; i < midiEventCount; ++i) {
+        const MidiEvent& ev(midiEvents[i]);
+        _processMidi(ev.data, ev.size);
+    }
 
-        // if (control_delay>20)
-        //{
-        //		control_delay = 0;
+    //	++control_delay;
 
-        // Check if no oscillators enabled or volume at zero.
-        // Once true, clear ring buffer and return.
-        static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
-        if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= minimum_volume) {
-            for (int x = 0; x < amsh.frames; x++) {
-                outL[x] = 0;
-                outR[x] = 0;
-            }
+    // if (control_delay>20)
+    //{
+    //		control_delay = 0;
+
+    // Generate and output audio frames.
+    //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
+    //   - If not, perform a resample on final mix.
+    if (fSampleRate == 44100.0f) {
+        for (unsigned int x = 0; x < frames; x++) {
+            _processAudioFrame(outL, outR, x);
+        }
+    } else {
+        /**
+         * Resample principle: Fill in the audio buffer with resampled frames.
+         * 1. Check if a resampled buffer is fully played or not. If not, send the
+         *   remaining frames to host buffers until:
+         *   - the buffer is full, or
+         *   - all samples played.
+         * 2. If all resampled frames played, generate new samples, then resample it.
+         *    Input sample counts is same as host buffer size (equals param "frames").
+         * 3. At this time, if the host buffer is still not fully filled, redo the
+         *    first step.
+         * Resampler uses libsamplerate for higher quality.
+         */
+
+        // Check if buffer is available. Buffer may be unavailable when being reallocated
+        if (!buffer_before_resample_l || !buffer_before_resample_r) {
+            memset(outL, 0, sizeof(float) * frames);
+            memset(outR, 0, sizeof(float) * frames);
             return;
         }
 
-        // Generate and output audio frames.
-        //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
-        //   - If not, perform a resample on final mix.
-        if (fSampleRate == 44100.0f) {
-            for (unsigned int x = 0; x < amsh.frames; x++) {
-                _processAudioFrame(outL, outR, x);
-            }
-        } else {
-            // Resample principle: Fill in the audio buffer with resampled frames.
-            //     For example, audio buffer's size is 512, and target sample rate is 96000 Hz.
-            //     1. Find out an input sample count so that resampler can output just 512 samples.
-            //        Result is 235.2.
-            //     2. Run _processAudioFrame(), and generate 235 samples (decimal is floored).
-            //     3. Run Resample_f32() to resample two channels. It will output 512 samples.
-            //     4. Put the resampled frames to audio buffer.
-            // Based on @cpuimage's resample algorithm.
+        // Play remaining frames of resampled buffer
+        while (frame_index < frames && resample_buffer_read_index < resampled_size) {
+            outL[frame_index] = buffer_after_resample_l[resample_buffer_read_index];
+            outR[frame_index] = buffer_after_resample_r[resample_buffer_read_index];
 
-            // Check if buffer is available. Buffer may be unavailable when being reallocated
-            if (!buffer_before_resample_l || !buffer_before_resample_r) {
-                memset(outL, 0, sizeof(float) * amsh.frames);
-                memset(outR, 0, sizeof(float) * amsh.frames);
-                return;
-            }
+            frame_index++;
+            resample_buffer_read_index++;
+        }
 
-            const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, amsh.frames);
-
-            for (uint32_t x = 0; x < expect_input_size; x++) {
+        // If all resampled buffers played, require new samples
+        if (resample_buffer_read_index >= resampled_size) {
+            for (uint32_t x = 0; x < frames; x++) {
                 _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
             }
 
             // Process each channel respectively.
-            // Note: The resampler functions are originally designed for interleaved WAV files.
-            const int channels = 1;
-            Resample_f32(buffer_before_resample_l, outL, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
-            Resample_f32(buffer_before_resample_r, outR, 44100, int(fSampleRate), expect_input_size / channels, channels, amsh.frames);
+            // Notes:
+            // - The resampler functions are originally designed for interleaved WAV files.
+            // - resampled_size_l and resampled_size_r are actually the same value, since the input frame sizes are equal.
+            //   Only resampled_size_l is used.
+            // - Do NOT change the last index of resampled buffer (by modifying resampled_size_l), otherwise you will
+            //   encounter unexpected loud noise blowing up your DAW!
+            m_resampler_data_l.data_in = buffer_before_resample_l;
+            m_resampler_data_l.input_frames = frames;
+            m_resampler_data_l.data_out = buffer_after_resample_l;
+            m_resampler_data_l.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_resampler_data_l.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_src_master_resample_l, &m_resampler_data_l);
+            resampled_size_l = m_resampler_data_l.output_frames_gen;
+
+            m_resampler_data_r.data_in = buffer_before_resample_r;
+            m_resampler_data_r.input_frames = frames;
+            m_resampler_data_r.data_out = buffer_after_resample_r;
+            m_resampler_data_r.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_resampler_data_r.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_src_master_resample_r, &m_resampler_data_r);
+            resampled_size_r = m_resampler_data_r.output_frames_gen;
+
+            resampled_size = resampled_size_l;
+
+            // Reset resample buffer read pointer
+            resample_buffer_read_index = 0;
+
+            // If the host buffer still has space, play our newly generated frames
+            while (frame_index < frames && resample_buffer_read_index < resampled_size) {
+                outL[frame_index] = buffer_after_resample_l[resample_buffer_read_index];
+                outR[frame_index] = buffer_after_resample_r[resample_buffer_read_index];
+
+                frame_index++;
+                resample_buffer_read_index++;
+            }
         }
     }
 }
@@ -177,8 +220,15 @@ void MinatonPlugin::sampleRateChanged(double newSampleRate)
 
 void MinatonPlugin::initResampler(uint32_t bufferSize)
 {
+    m_src_master_resample_l = src_new(SRC_LINEAR, 1, &m_src_errno);
+    m_src_master_resample_r = src_new(SRC_LINEAR, 1, &m_src_errno);
+
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
+
+    // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
+    memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+    memset(buffer_after_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
 }
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
@@ -188,6 +238,13 @@ void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
+
+    // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
+    memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+    memset(buffer_after_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+
+    src_reset(m_src_master_resample_l);
+    src_reset(m_src_master_resample_r);
 }
 
 void MinatonPlugin::cleanupResampler()
@@ -197,6 +254,12 @@ void MinatonPlugin::cleanupResampler()
 
     buffer_before_resample_l = nullptr;
     buffer_before_resample_r = nullptr;
+
+    src_delete(m_src_master_resample_l);
+    src_delete(m_src_master_resample_r);
+
+    m_src_master_resample_l = nullptr;
+    m_src_master_resample_r = nullptr;
 }
 
 Plugin* createPlugin()

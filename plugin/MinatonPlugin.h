@@ -7,7 +7,11 @@
 
 #include "config.h"
 
+#include <samplerate.h>
+
 #include <memory>
+
+constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 65536;
 
 START_NAMESPACE_DISTRHO
 
@@ -25,7 +29,16 @@ class MinatonPlugin : public Plugin {
     int control_delay;
 
     // Resampler data
+    SRC_STATE* m_src_master_resample_l;
+    SRC_STATE* m_src_master_resample_r;
+    SRC_DATA m_resampler_data_l, m_resampler_data_r;
+    int m_src_errno;
+
     float *buffer_before_resample_l, *buffer_before_resample_r;
+
+    float buffer_after_resample_l[MAX_RESAMPLED_BUFFER_SIZE], buffer_after_resample_r[MAX_RESAMPLED_BUFFER_SIZE];
+    uint64_t resampled_size, resampled_size_l, resampled_size_r;
+    uint32_t resample_buffer_read_index;
 
 public:
     MinatonPlugin();
