@@ -9,6 +9,8 @@ START_NAMESPACE_DISTRHO
 
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
+    , buffer_before_resample_l(nullptr)
+    , buffer_before_resample_r(nullptr)
 {
     // TODO: Integrate waves as internal resources
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
@@ -127,6 +129,13 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             //     4. Put the resampled frames to audio buffer.
             // Based on @cpuimage's resample algorithm.
 
+            // Check if buffer is available. Buffer may be unavailable when being reallocated
+            if (!buffer_before_resample_l || !buffer_before_resample_r) {
+                memset(outL, 0, sizeof(float) * amsh.frames);
+                memset(outR, 0, sizeof(float) * amsh.frames);
+                return;
+            }
+
             const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, amsh.frames);
 
             for (uint32_t x = 0; x < expect_input_size; x++) {
@@ -174,14 +183,20 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 {
-    buffer_before_resample_l = (float*)realloc(buffer_before_resample_l, sizeof(float) * bufferSize);
-    buffer_before_resample_r = (float*)realloc(buffer_before_resample_r, sizeof(float) * bufferSize);
+    free(buffer_before_resample_l);
+    free(buffer_before_resample_r);
+
+    buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
+    buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
 }
 
 void MinatonPlugin::cleanupResampler()
 {
     free(buffer_before_resample_l);
     free(buffer_before_resample_r);
+
+    buffer_before_resample_l = nullptr;
+    buffer_before_resample_r = nullptr;
 }
 
 Plugin* createPlugin()
