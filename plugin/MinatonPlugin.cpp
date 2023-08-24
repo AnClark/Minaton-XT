@@ -9,6 +9,8 @@ START_NAMESPACE_DISTRHO
 
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
+    , buffer_before_resample_l(nullptr)
+    , buffer_before_resample_r(nullptr)
 {
     // TODO: Integrate waves as internal resources
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
@@ -110,22 +112,14 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             return;
         }
 
-        // Generate and output audio frames.
-        //   - If sample rate == 44100.0f (default sample rate), output frames as-is.
-        //   - If not, perform a resample on final mix.
-        if (fSampleRate == 44100.0f) {
-            for (unsigned int x = 0; x < amsh.frames; x++) {
-                _processAudioFrame(outL, outR, x);
-            }
-        } else {
-            // Resample principle: Fill in the audio buffer with resampled frames.
-            //     For example, audio buffer's size is 512, and target sample rate is 96000 Hz.
-            //     1. Find out an input sample count so that resampler can output just 512 samples.
-            //        Result is 235.2.
-            //     2. Run _processAudioFrame(), and generate 235 samples (decimal is floored).
-            //     3. Run Resample_f32() to resample two channels. It will output 512 samples.
-            //     4. Put the resampled frames to audio buffer.
-            // Based on @cpuimage's resample algorithm.
+        // Check if buffer is available. Buffer may be unavailable when being reallocated
+        if (!buffer_before_resample_l || !buffer_before_resample_r) {
+            memset(outL, 0, sizeof(float) * frames);
+            memset(outR, 0, sizeof(float) * frames);
+            return;
+        }
+
+        for (unsigned int x = 0; x < frames; x++) {
 
             const double expect_input_size = getExpectedInputSize(44100.0f, fSampleRate, amsh.frames);
 
@@ -174,14 +168,20 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 {
-    buffer_before_resample_l = (float*)realloc(buffer_before_resample_l, sizeof(float) * bufferSize);
-    buffer_before_resample_r = (float*)realloc(buffer_before_resample_r, sizeof(float) * bufferSize);
+    free(buffer_before_resample_l);
+    free(buffer_before_resample_r);
+
+    buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
+    buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
 }
 
 void MinatonPlugin::cleanupResampler()
 {
     free(buffer_before_resample_l);
     free(buffer_before_resample_r);
+
+    buffer_before_resample_l = nullptr;
+    buffer_before_resample_r = nullptr;
 }
 
 Plugin* createPlugin()
