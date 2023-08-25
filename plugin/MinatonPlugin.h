@@ -29,16 +29,16 @@ class MinatonPlugin : public Plugin {
     int control_delay;
 
     // Resampler data
-    SRC_STATE* m_src_master_resample_l;
-    SRC_STATE* m_src_master_resample_r;
-    SRC_DATA m_resampler_data_l, m_resampler_data_r;
-    int m_src_errno;
+    SRC_STATE* m_srcMaster_L;
+    SRC_STATE* m_srcMaster_R;
+    SRC_DATA m_srcData_L, m_srcData_R;
+    int m_srcErrNo;
 
     float *buffer_before_resample_l, *buffer_before_resample_r;
 
     float buffer_after_resample_l[MAX_RESAMPLED_BUFFER_SIZE], buffer_after_resample_r[MAX_RESAMPLED_BUFFER_SIZE];
-    uint64_t resampled_size, resampled_size_l, resampled_size_r;
-    uint32_t resample_buffer_read_index;
+    uint64_t m_sizeResampled, m_sizeResampled_L, m_sizeResampled_R;
+    uint32_t m_resampleBufferReadIndex;
 
 public:
     MinatonPlugin();

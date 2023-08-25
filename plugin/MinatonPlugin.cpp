@@ -9,10 +9,10 @@ MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
     , buffer_before_resample_l(nullptr)
     , buffer_before_resample_r(nullptr)
-    , m_src_master_resample_l(nullptr)
-    , m_src_master_resample_r(nullptr)
-    , resample_buffer_read_index(0)
-    , resampled_size(0)
+    , m_srcMaster_L(nullptr)
+    , m_srcMaster_R(nullptr)
+    , m_resampleBufferReadIndex(0)
+    , m_sizeResampled(0)
 {
     // TODO: Integrate waves as internal resources
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
@@ -140,16 +140,16 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         }
 
         // Play remaining frames of resampled buffer
-        while (frame_index < frames && resample_buffer_read_index < resampled_size) {
-            outL[frame_index] = buffer_after_resample_l[resample_buffer_read_index];
-            outR[frame_index] = buffer_after_resample_r[resample_buffer_read_index];
+        while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
+            outL[frame_index] = buffer_after_resample_l[m_resampleBufferReadIndex];
+            outR[frame_index] = buffer_after_resample_r[m_resampleBufferReadIndex];
 
             frame_index++;
-            resample_buffer_read_index++;
+            m_resampleBufferReadIndex++;
         }
 
         // If all resampled buffers played, require new samples
-        if (resample_buffer_read_index >= resampled_size) {
+        if (m_resampleBufferReadIndex >= m_sizeResampled) {
             for (uint32_t x = 0; x < frames; x++) {
                 _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
             }
@@ -161,34 +161,34 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             //   Only resampled_size_l is used.
             // - Do NOT change the last index of resampled buffer (by modifying resampled_size_l), otherwise you will
             //   encounter unexpected loud noise blowing up your DAW!
-            m_resampler_data_l.data_in = buffer_before_resample_l;
-            m_resampler_data_l.input_frames = frames;
-            m_resampler_data_l.data_out = buffer_after_resample_l;
-            m_resampler_data_l.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
-            m_resampler_data_l.src_ratio = (float)fSampleRate / 44100.0f;
-            src_process(m_src_master_resample_l, &m_resampler_data_l);
-            resampled_size_l = m_resampler_data_l.output_frames_gen;
+            m_srcData_L.data_in = buffer_before_resample_l;
+            m_srcData_L.input_frames = frames;
+            m_srcData_L.data_out = buffer_after_resample_l;
+            m_srcData_L.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_srcData_L.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_srcMaster_L, &m_srcData_L);
+            m_sizeResampled_L = m_srcData_L.output_frames_gen;
 
-            m_resampler_data_r.data_in = buffer_before_resample_r;
-            m_resampler_data_r.input_frames = frames;
-            m_resampler_data_r.data_out = buffer_after_resample_r;
-            m_resampler_data_r.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
-            m_resampler_data_r.src_ratio = (float)fSampleRate / 44100.0f;
-            src_process(m_src_master_resample_r, &m_resampler_data_r);
-            resampled_size_r = m_resampler_data_r.output_frames_gen;
+            m_srcData_R.data_in = buffer_before_resample_r;
+            m_srcData_R.input_frames = frames;
+            m_srcData_R.data_out = buffer_after_resample_r;
+            m_srcData_R.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_srcData_R.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_srcMaster_R, &m_srcData_R);
+            m_sizeResampled_R = m_srcData_R.output_frames_gen;
 
-            resampled_size = resampled_size_l;
+            m_sizeResampled = m_sizeResampled_L;
 
             // Reset resample buffer read pointer
-            resample_buffer_read_index = 0;
+            m_resampleBufferReadIndex = 0;
 
             // If the host buffer still has space, play our newly generated frames
-            while (frame_index < frames && resample_buffer_read_index < resampled_size) {
-                outL[frame_index] = buffer_after_resample_l[resample_buffer_read_index];
-                outR[frame_index] = buffer_after_resample_r[resample_buffer_read_index];
+            while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
+                outL[frame_index] = buffer_after_resample_l[m_resampleBufferReadIndex];
+                outR[frame_index] = buffer_after_resample_r[m_resampleBufferReadIndex];
 
                 frame_index++;
-                resample_buffer_read_index++;
+                m_resampleBufferReadIndex++;
             }
         }
     }
@@ -220,8 +220,8 @@ void MinatonPlugin::sampleRateChanged(double newSampleRate)
 
 void MinatonPlugin::initResampler(uint32_t bufferSize)
 {
-    m_src_master_resample_l = src_new(SRC_LINEAR, 1, &m_src_errno);
-    m_src_master_resample_r = src_new(SRC_LINEAR, 1, &m_src_errno);
+    m_srcMaster_L = src_new(SRC_LINEAR, 1, &m_srcErrNo);
+    m_srcMaster_R = src_new(SRC_LINEAR, 1, &m_srcErrNo);
 
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
@@ -243,8 +243,8 @@ void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
     memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
     memset(buffer_after_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
 
-    src_reset(m_src_master_resample_l);
-    src_reset(m_src_master_resample_r);
+    src_reset(m_srcMaster_L);
+    src_reset(m_srcMaster_R);
 }
 
 void MinatonPlugin::cleanupResampler()
@@ -255,11 +255,11 @@ void MinatonPlugin::cleanupResampler()
     buffer_before_resample_l = nullptr;
     buffer_before_resample_r = nullptr;
 
-    src_delete(m_src_master_resample_l);
-    src_delete(m_src_master_resample_r);
+    src_delete(m_srcMaster_L);
+    src_delete(m_srcMaster_R);
 
-    m_src_master_resample_l = nullptr;
-    m_src_master_resample_r = nullptr;
+    m_srcMaster_L = nullptr;
+    m_srcMaster_R = nullptr;
 }
 
 Plugin* createPlugin()
