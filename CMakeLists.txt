@@ -92,8 +92,13 @@ add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 # Build plug-ins
 #
 
+# Only build standalone (JACK) application on Linux
+if (UNIX AND NOT APPLE)
+    set (BUILD_STANDALONE jack)
+endif ()
+
 dpf_add_plugin (${PROJECT_NAME}
-    TARGETS vst2 vst3 lv2 clap jack
+    TARGETS vst2 vst3 lv2 clap ${BUILD_STANDALONE}
     UI_TYPE opengl
     FILES_DSP
         src/synth.cpp
