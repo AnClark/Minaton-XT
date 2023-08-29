@@ -7,8 +7,10 @@ START_NAMESPACE_DISTRHO
 
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
+#if 0 /* Now we prefer fixed size of buffer */
     , buffer_before_resample_l(nullptr)
     , buffer_before_resample_r(nullptr)
+#endif
     , m_srcMaster_L(nullptr)
     , m_srcMaster_R(nullptr)
     , m_resampleBufferReadIndex(0)
@@ -88,6 +90,17 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
     float* const outL = outputs[0];
     float* const outR = outputs[1];
 
+    // Sanity check for host buffer size.
+    // I can't prevents some hosts to give Minaton extremely large buffers :-0
+    // TODO: Show a warning on UI side.
+    if (unlikely(frames > MAX_HOST_BUFFER_SIZE)) {
+        d_stderr2("[DSP] [FATAL!] Your host gives Minaton too large buffer (size: %d)! Max accepted size should be %d", frames, MAX_HOST_BUFFER_SIZE);
+
+        memset(outL, 0, sizeof(float) * frames);
+        memset(outR, 0, sizeof(float) * frames);
+        return;
+    }
+
     // Check if no oscillators enabled or volume at zero.
     // Once true, clear ring buffer and return.
     static const uint32_t minimum_volume = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
@@ -132,12 +145,14 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
          * Resampler uses libsamplerate for higher quality.
          */
 
+#if 0 /* Now we prefer fixed size of buffer */
         // Check if buffer is available. Buffer may be unavailable when being reallocated
         if (!buffer_before_resample_l || !buffer_before_resample_r) {
             memset(outL, 0, sizeof(float) * frames);
             memset(outR, 0, sizeof(float) * frames);
             return;
         }
+#endif
 
         // Play remaining frames of resampled buffer
         while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
@@ -223,8 +238,14 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
     m_srcMaster_L = src_new(SRC_LINEAR, 1, &m_srcErrNo);
     m_srcMaster_R = src_new(SRC_LINEAR, 1, &m_srcErrNo);
 
+#if 0 /* Now we prefer fixed size of buffer */
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
+#else
+    // Set resampler input buffer to zero in case unexpected noise generates
+    memset(buffer_before_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+    memset(buffer_before_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+#endif
 
     // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
     memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
@@ -233,11 +254,17 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 {
+#if 0 /* Now we prefer fixed size of buffer */
     free(buffer_before_resample_l);
     free(buffer_before_resample_r);
 
     buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
     buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
+#else
+    // Set resampler input buffer to zero in case unexpected noise generates
+    memset(buffer_before_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+    memset(buffer_before_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
+#endif
 
     // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
     memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
@@ -249,11 +276,13 @@ void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 
 void MinatonPlugin::cleanupResampler()
 {
+#if 0 /* Now we prefer fixed size of buffer */
     free(buffer_before_resample_l);
     free(buffer_before_resample_r);
 
     buffer_before_resample_l = nullptr;
     buffer_before_resample_r = nullptr;
+#endif
 
     src_delete(m_srcMaster_L);
     src_delete(m_srcMaster_R);

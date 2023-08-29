@@ -11,6 +11,7 @@
 
 #include <memory>
 
+constexpr size_t MAX_HOST_BUFFER_SIZE = 16384;
 constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 65536;
 
 START_NAMESPACE_DISTRHO
@@ -34,7 +35,11 @@ class MinatonPlugin : public Plugin {
     SRC_DATA m_srcData_L, m_srcData_R;
     int m_srcErrNo;
 
+#if 0 /* Now we prefer fixed size of buffer */
     float *buffer_before_resample_l, *buffer_before_resample_r;
+#else
+    float buffer_before_resample_l[MAX_HOST_BUFFER_SIZE], buffer_before_resample_r[MAX_HOST_BUFFER_SIZE];
+#endif
 
     float buffer_after_resample_l[MAX_RESAMPLED_BUFFER_SIZE], buffer_after_resample_r[MAX_RESAMPLED_BUFFER_SIZE];
     uint64_t m_sizeResampled, m_sizeResampled_L, m_sizeResampled_R;
