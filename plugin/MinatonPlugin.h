@@ -11,8 +11,14 @@
 
 #include <memory>
 
-constexpr size_t MAX_HOST_BUFFER_SIZE = 16384;
-constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 65536;
+// Sizes of maximum resampler buffer size
+// NOTE:
+// * Most hosts use no more than 2048 frames of buffer size
+// * To prevent aliases, max output buffer size should be large enough:
+//   - if input buffer size is 2048, output buffer should be (2048 * 5)
+//   - if MAX_HOST_BUFFER_SIZE >= 4096, 4 times is OK
+constexpr size_t MAX_HOST_BUFFER_SIZE = 2048; // Resampler input
+constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 2048 * 5; // Resampler output
 
 START_NAMESPACE_DISTRHO
 
