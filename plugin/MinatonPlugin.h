@@ -34,6 +34,7 @@ class MinatonPlugin : public Plugin {
     uint32_t m_counter;
     int last_note;
     int control_delay;
+    unsigned char m_velocity;
 
     // Resampler data
     SRC_STATE* m_srcMaster_L;
