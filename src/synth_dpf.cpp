@@ -172,6 +172,16 @@ minaton_channel_mode minaton_synth_dpf::get_dco_output_channel(int dco_number)
     return CHANNEL_L_AND_R;
 }
 
+void minaton_synth_dpf::set_velocity(uint8_t velocity)
+{
+    this->m_velocity = velocity;
+}
+
+uint8_t minaton_synth_dpf::get_velocity()
+{
+    return m_velocity;
+}
+
 //=========================================================
 //-- Accessor for embedded waves
 //=========================================================

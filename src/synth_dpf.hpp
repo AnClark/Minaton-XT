@@ -60,8 +60,13 @@ public:
     void panic();
     void reset_dco_out_position();
 
+    void set_velocity(uint8_t velocity);
+    uint8_t get_velocity();
+
 private:
     Memory m_memory;
+
+    uint8_t m_velocity; // Velocity support
 
     minaton_output_mode output_mode; // true: stereo; false: mono
     minaton_channel_mode dco1_output_channel;
