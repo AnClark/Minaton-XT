@@ -163,8 +163,8 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             m_resampleBufferReadIndex++;
         }
 
-        // If all resampled buffers played, require new samples
-        if (m_resampleBufferReadIndex >= m_sizeResampled) {
+        // If all resampled buffers played, and there's still space left in output buffer, let's require new samples
+        while (frame_index < frames) {
             for (uint32_t x = 0; x < frames; x++) {
                 _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
             }
