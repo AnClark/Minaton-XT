@@ -131,7 +131,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         for (unsigned int x = 0; x < frames; x++) {
             _processAudioFrame(outL, outR, x);
         }
-    } else {
+    } else if (fSampleRate > 44100.0f) { // Upsample
         /**
          * Resample principle: Fill in the audio buffer with resampled frames.
          * 1. Check if a resampled buffer is fully played or not. If not, send the
@@ -206,6 +206,60 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
                 m_resampleBufferReadIndex++;
             }
         }
+    } else if (unlikely(fSampleRate > 0.0f && fSampleRate < 44100.0f)) { // Downsample
+        // Play remaining frames of resampled buffer
+        while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
+            outL[frame_index] = buffer_after_resample_l[m_resampleBufferReadIndex];
+            outR[frame_index] = buffer_after_resample_r[m_resampleBufferReadIndex];
+
+            frame_index++;
+            m_resampleBufferReadIndex++;
+        }
+
+        while (frame_index < frames) {
+            for (uint32_t x = 0; x < frames; x++) {
+                _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
+            }
+
+            // Process each channel respectively.
+            // Notes:
+            // - The resampler functions are originally designed for interleaved WAV files.
+            // - resampled_size_l and resampled_size_r are actually the same value, since the input frame sizes are equal.
+            //   Only resampled_size_l is used.
+            // - Do NOT change the last index of resampled buffer (by modifying resampled_size_l), otherwise you will
+            //   encounter unexpected loud noise blowing up your DAW!
+            m_srcData_L.data_in = buffer_before_resample_l;
+            m_srcData_L.input_frames = frames;
+            m_srcData_L.data_out = buffer_after_resample_l;
+            m_srcData_L.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_srcData_L.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_srcMaster_L, &m_srcData_L);
+            m_sizeResampled_L = m_srcData_L.output_frames_gen;
+
+            m_srcData_R.data_in = buffer_before_resample_r;
+            m_srcData_R.input_frames = frames;
+            m_srcData_R.data_out = buffer_after_resample_r;
+            m_srcData_R.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
+            m_srcData_R.src_ratio = (float)fSampleRate / 44100.0f;
+            src_process(m_srcMaster_R, &m_srcData_R);
+            m_sizeResampled_R = m_srcData_R.output_frames_gen;
+
+            m_sizeResampled = m_sizeResampled_L;
+
+            // Reset resample buffer read pointer
+            m_resampleBufferReadIndex = 0;
+
+            // If the host buffer still has space, play our newly generated frames
+            while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
+                outL[frame_index] = buffer_after_resample_l[m_resampleBufferReadIndex];
+                outR[frame_index] = buffer_after_resample_r[m_resampleBufferReadIndex];
+
+                frame_index++;
+                m_resampleBufferReadIndex++;
+            }
+        }
+    } else [[unlikely]] { // Fallback
+        DISTRHO_SAFE_ASSERT(fSampleRate <= 0.0f);
     }
 }
 
