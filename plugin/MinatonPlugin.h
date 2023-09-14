@@ -20,6 +20,9 @@
 constexpr size_t MAX_HOST_BUFFER_SIZE = 2048; // Resampler input
 constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 2048 * 5; // Resampler output
 
+// Constants
+static const float MINIMUM_VOLUME = MinatonParams::paramMinValue(PARAM_MASTER_VOLUME);
+
 START_NAMESPACE_DISTRHO
 
 class MinatonPlugin : public Plugin {
