@@ -1,6 +1,6 @@
 #include "MinatonParams.h"
 
-static struct MinatonParamDefinition minaton_params[MinatonParamId::PARAM_COUNT] = {
+static constexpr struct MinatonParamDefinition minaton_params[MinatonParamId::PARAM_COUNT] = {
     // symbol, frequency, min, max, def, type
     { "frequency", "Frequency", -0.1, 0.5, 0, PARAM_FLOAT },
     { "resonance", "Resonance", 0, 3.6, 1.6, PARAM_FLOAT },
