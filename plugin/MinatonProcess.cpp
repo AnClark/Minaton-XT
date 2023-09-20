@@ -1,10 +1,5 @@
 #include "MinatonPlugin.h"
 
-// Check if a DCO should output to specified channel
-// NOTICE: Do not leave the outer parentheses, otherwise you'll encounter unexpected behaviors!
-#define IS_DCO_OUT_TO_L(id) (fSynthesizer->get_dco_output_channel(id) == CHANNEL_LEFT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R)
-#define IS_DCO_OUT_TO_R(id) (fSynthesizer->get_dco_output_channel(id) == CHANNEL_RIGHT || fSynthesizer->get_dco_output_channel(id) == CHANNEL_L_AND_R)
-
 static float calculate_volume_division_factor(float volume_param)
 {
     // Sanity check. Volume out of range will corrupt the synthesizer!
@@ -95,8 +90,8 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
     float velocity_mul_factor = calculate_velocity_multiply_factor(m_velocity);
 
     if (fSynthesizer->get_output_mode() == OUTPUT_STEREO) { // Stereo output
-        float mixer_out_left = ((IS_DCO_OUT_TO_L(0) ? mix1 : 0.0f) + (IS_DCO_OUT_TO_L(1) ? mix2 : 0.0f) + (IS_DCO_OUT_TO_L(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
-        float mixer_out_right = ((IS_DCO_OUT_TO_R(0) ? mix1 : 0.0f) + (IS_DCO_OUT_TO_R(1) ? mix2 : 0.0f) + (IS_DCO_OUT_TO_R(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
+        float mixer_out_left = ((fSynthesizer->is_dco_out_to_L(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_L(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_L(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
+        float mixer_out_right = ((fSynthesizer->is_dco_out_to_R(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_R(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_R(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
 
         // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
         // Even a illeagal value still corrupts the synthesizer!
@@ -119,9 +114,9 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
         //   - that DCO is active as well.
         //
         // NOTICE: Make sure you don't forget the outer parentheses of IS_DCO_OUT_TO_(L|R)!
-        if ((IS_DCO_OUT_TO_L(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_L(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_L(2) && fSynthesizer->active3))
+        if ((fSynthesizer->is_dco_out_to_L(0) && fSynthesizer->active1) || (fSynthesizer->is_dco_out_to_L(1) && fSynthesizer->active2) || (fSynthesizer->is_dco_out_to_L(2) && fSynthesizer->active3))
             mixer_out_left = fSynthesizer->dcf_left(mixer_out_left, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
-        if ((IS_DCO_OUT_TO_R(0) && fSynthesizer->active1) || (IS_DCO_OUT_TO_R(1) && fSynthesizer->active2) || (IS_DCO_OUT_TO_R(2) && fSynthesizer->active3))
+        if ((fSynthesizer->is_dco_out_to_R(0) && fSynthesizer->active1) || (fSynthesizer->is_dco_out_to_R(1) && fSynthesizer->active2) || (fSynthesizer->is_dco_out_to_R(2) && fSynthesizer->active3))
             mixer_out_right = fSynthesizer->dcf_right(mixer_out_right, fSynthesizer->envelope2_out(0.1, fSynthesizer->adsr_filter_amount2), 0.1);
 
         audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
