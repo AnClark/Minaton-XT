@@ -2,6 +2,8 @@
 #include "minaton_waves.hpp"
 #include "stb_decompress.h"
 
+#include "src/DistrhoDefines.h" // For macro "unlikely"
+
 #include <cstring>
 
 //=========================================================
@@ -140,36 +142,20 @@ void minaton_synth_dpf::reset_dco_out_position()
         dco_out_position[i] = 0;
 }
 
-void minaton_synth_dpf::set_dco_output_channel(int dco_number, minaton_channel_mode channel)
+void minaton_synth_dpf::set_dco_output_channel(const uint8_t dco_number, minaton_channel_mode channel)
 {
-    switch (dco_number) {
-    case 0: // DCO1
-        dco1_output_channel = channel;
-        break;
-    case 1: // DCO2
-        dco2_output_channel = channel;
-        break;
-    case 2: // DCO3
-        dco3_output_channel = channel;
-        break;
-    }
+    if (unlikely(dco_number > 3))
+        return;
+
+    dco_output_channel[dco_number] = channel;
 }
 
-minaton_channel_mode minaton_synth_dpf::get_dco_output_channel(int dco_number)
+minaton_channel_mode minaton_synth_dpf::get_dco_output_channel(const uint8_t dco_number)
 {
-    switch (dco_number) {
-    case 0: // DCO1
-        return dco1_output_channel;
-        break;
-    case 1: // DCO2
-        return dco2_output_channel;
-        break;
-    case 2: // DCO3
-        return dco3_output_channel;
-        break;
-    }
+    if (unlikely(dco_number > 3))
+        return CHANNEL_L_AND_R;
 
-    return CHANNEL_L_AND_R;
+    return dco_output_channel[dco_number];
 }
 
 //=========================================================
