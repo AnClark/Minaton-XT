@@ -719,7 +719,7 @@ float minaton_synth::dcf_left(float in, float frequency, float resonance)
         frequency = 0.001;
     }
 
-    gain1_left = 1.0 / (selectivity + 1.0);
+    gain1_left = 1.0 * (1.0 / (selectivity + 1.0));
 
     cap_left = (in + cap_left * selectivity) * gain1_left;
     in = ((in + cap_left * ratio_left) * gain2_left);
@@ -777,7 +777,7 @@ float minaton_synth::dcf_right(float in, float frequency, float resonance)
         frequency = 0.001;
     }
 
-    gain1_right = 1.0 / (selectivity + 1.0);
+    gain1_right = 1.0 * (1.0 / (selectivity + 1.0));
 
     cap_right = (in + cap_right * selectivity) * gain1_right;
     in = ((in + cap_right * ratio_right) * gain2_right);
