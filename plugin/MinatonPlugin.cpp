@@ -15,6 +15,7 @@ MinatonPlugin::MinatonPlugin()
     , m_srcMaster_R(nullptr)
     , m_resampleBufferReadIndex(0)
     , m_sizeResampled(0)
+    , m_volumeReciprocalDivFactor(0.0f)
 {
     // TODO: Integrate waves as internal resources
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
