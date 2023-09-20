@@ -39,7 +39,10 @@ static inline float calculate_velocity_multiply_factor(unsigned char velocity)
         velocity = 1;
     }
 
-    return (float)velocity / 127.0f;
+    // Optimize the formula by Reciprocal Multiplication. This highly improves performance.
+    // NOTE: Original formula is: vel_multiply_factor = velocity / 127.0f.
+    static constexpr float velocity_conv_factor = 1.0f / 127.0f; // Preload multiply factor on compile time
+    return (float)velocity * velocity_conv_factor; // Optimized calculation
 }
 
 static void mixer_out_sanitize(float& mixer_out)
