@@ -1,5 +1,29 @@
 #include "MinatonPlugin.h"
 
+static float calculate_volume_division_factor(float volume_param)
+{
+    // Sanity check. Volume out of range will corrupt the synthesizer!
+    // Input volume range: [5, 100].
+    if (volume_param > 100) {
+        volume_param = 100;
+    } else if (volume_param < 5) {
+        volume_param = 5;
+    }
+
+    // Transform volume parameter to actual volume division factor.
+    // Conversion conforms to this procedure:
+    //     1. Let x = volume param, y = target volume div factor.
+    //     2. (x, y) should satisfy this map:
+    //        * When x = 5,   y = 95
+    //        * When x = 100, y = 5
+    //     3. So we get two points in rectangular coordinate system.
+    //        Then we calculate the linear function via this formula:
+    //          (y-y1) / (y2-y1) = (x-x1) / (x2-x1), x1≠x2，y1≠y2.
+    //
+    // The expression below conforms to the result function.
+    return (-90.0f / 95.0f) * volume_param + (9475.0f / 95.0f);
+}
+
 float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
 {
     switch (index) {
@@ -161,6 +185,7 @@ void MinatonPlugin::_applySynthParameter(MinatonParamId index, float value)
     // Master output
     case PARAM_MASTER_VOLUME:
         fSynthesizer->master_volume = value;
+        m_volumeReciprocalDivFactor = 1.0f / calculate_volume_division_factor(value);
         break;
     case PARAM_LEGATO:
         fSynthesizer->set_legato(value);

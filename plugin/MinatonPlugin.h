@@ -55,6 +55,9 @@ class MinatonPlugin : public Plugin {
     uint64_t m_sizeResampled, m_sizeResampled_L, m_sizeResampled_R;
     uint32_t m_resampleBufferReadIndex;
 
+    // Reusable parameters
+    float m_volumeReciprocalDivFactor;
+
 public:
     MinatonPlugin();
     ~MinatonPlugin();

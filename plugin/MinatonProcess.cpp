@@ -1,29 +1,5 @@
 #include "MinatonPlugin.h"
 
-static float calculate_volume_division_factor(float volume_param)
-{
-    // Sanity check. Volume out of range will corrupt the synthesizer!
-    // Input volume range: [5, 100].
-    if (volume_param > 100) {
-        volume_param = 100;
-    } else if (volume_param < 5) {
-        volume_param = 5;
-    }
-
-    // Transform volume parameter to actual volume division factor.
-    // Conversion conforms to this procedure:
-    //     1. Let x = volume param, y = target volume div factor.
-    //     2. (x, y) should satisfy this map:
-    //        * When x = 5,   y = 95
-    //        * When x = 100, y = 5
-    //     3. So we get two points in rectangular coordinate system.
-    //        Then we calculate the linear function via this formula:
-    //          (y-y1) / (y2-y1) = (x-x1) / (x2-x1), x1≠x2，y1≠y2.
-    //
-    // The expression below conforms to the result function.
-    return (-90.0f / 95.0f) * volume_param + (9475.0f / 95.0f);
-}
-
 static inline float calculate_velocity_multiply_factor(unsigned char velocity)
 {
     // Sanity check. Volume out of range will corrupt the synthesizer!
@@ -89,12 +65,12 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
         mix3 = fSynthesizer->dco_cycle(2);
     }
 
-    float volume_div_factor = calculate_volume_division_factor(fSynthesizer->master_volume);
+    const float& volume_reciprocal_div_factor = m_volumeReciprocalDivFactor;
     float velocity_mul_factor = calculate_velocity_multiply_factor(m_velocity);
 
     if (fSynthesizer->get_output_mode() == OUTPUT_STEREO) { // Stereo output
-        float mixer_out_left = ((fSynthesizer->is_dco_out_to_L(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_L(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_L(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
-        float mixer_out_right = ((fSynthesizer->is_dco_out_to_R(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_R(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_R(2) ? mix3 : 0.0f)) / volume_div_factor * velocity_mul_factor;
+        float mixer_out_left = ((fSynthesizer->is_dco_out_to_L(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_L(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_L(2) ? mix3 : 0.0f)) * volume_reciprocal_div_factor * velocity_mul_factor;
+        float mixer_out_right = ((fSynthesizer->is_dco_out_to_R(0) ? mix1 : 0.0f) + (fSynthesizer->is_dco_out_to_R(1) ? mix2 : 0.0f) + (fSynthesizer->is_dco_out_to_R(2) ? mix3 : 0.0f)) * volume_reciprocal_div_factor * velocity_mul_factor;
 
         // Must sanitize mixer outputs, since NaN or out-of-bound samples appear occasionally.
         // Even a illeagal value still corrupts the synthesizer!
@@ -125,7 +101,7 @@ void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t 
         audio_l[frame_index] = fSynthesizer->envelope1_out(mixer_out_left, fSynthesizer->adsr_amp_amount1);
         audio_r[frame_index] = fSynthesizer->envelope1_out(mixer_out_right, fSynthesizer->adsr_amp_amount1);
     } else { // Mono output
-        float mixer_out = (mix1 + mix2 + mix3) / volume_div_factor * velocity_mul_factor;
+        float mixer_out = (mix1 + mix2 + mix3) * volume_reciprocal_div_factor * velocity_mul_factor;
 
         mixer_out_sanitize(mixer_out);
 
