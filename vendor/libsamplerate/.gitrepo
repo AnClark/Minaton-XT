@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/libsndfile/libsamplerate.git
+	branch = fc42c68c2152c350651545645e52fa9ce1998919
+	commit = fc42c68c2152c350651545645e52fa9ce1998919
+	parent = c519daddeed975e3b41feb759ed90fa2714e578e
+	method = merge
+	cmdver = 0.4.9
