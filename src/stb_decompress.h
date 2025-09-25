@@ -15,7 +15,11 @@
 //-----------------------------------------------------------------------------
 
 #include <assert.h>
-#include <malloc.h>
+#if defined(__linux__) || defined(__GLIBC__)
+#   include <malloc.h>   // Linux
+#else
+#   include <stdlib.h>   // macOS / *BSD
+#endif
 #include <memory.h>
 
 //=========================================================
