@@ -133,9 +133,9 @@ jobs:
 
       - name: Build macOS universal plugins
         env:
-          CFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_X_VERSION_10_9 -mmacosx-version-min=10.9 -mtune=generic -msse -msse2
-          CXXFLAGS: -arch x86_64 -arch arm64 -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_X_VERSION_10_12 -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_X_VERSION_10_9 -mmacosx-version-min=10.9 -mtune=generic -msse -msse2
-          LDFLAGS: -arch x86_64 -arch arm64 -mmacosx-version-min=10.9
+          CFLAGS: -arch x86_64 -arch arm64 -mtune=generic -msse -msse2
+          CXXFLAGS: -arch x86_64 -arch arm64 -mtune=generic -msse -msse2
+          LDFLAGS: -arch x86_64 -arch arm64
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           make -C build NOOPT=true -j $(sysctl -n hw.logicalcpu)
