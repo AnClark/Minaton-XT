@@ -7,6 +7,9 @@ project (minaton
 
 add_subdirectory (dpf)
 
+# Explicitly specify C++ standard
+set (CMAKE_CXX_STANDARD 17)
+
 # Add our CMake extention module path
 list (APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
