@@ -77,7 +77,10 @@ make_directory (${GENERATED_WAVES_DIR})
 
 # Binary-to-C converter from Dear ImGui
 add_executable (binary_to_compressed_c utils/binary_to_compressed_c.cpp)
-target_link_options (binary_to_compressed_c PRIVATE -static)
+# Only build static converter on Win32 or MinGW cross-compiling
+if (WIN32 AND NOT MSVC)
+    target_link_options (binary_to_compressed_c PRIVATE -static)
+endif ()
 
 set (WAVES_DIR ${PROJECT_SOURCE_DIR}/src/waves)
 set (GENERATED_WAVE_HEADER ${GENERATED_WAVES_DIR}/minaton_waves.hpp)
