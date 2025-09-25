@@ -124,8 +124,11 @@
 #define CPU_IS_X86_64	0
 #endif
 
+/* AnClark modification 2025/9/25: Only enable SSE2 on x86 platform */
+#if CPU_IS_X86
 #if (defined (__SSE2__) || defined (_M_AMD64) || (defined (_M_IX86_FP) && (_M_IX86_FP >= 2)) && HAVE_IMMINTRIN_H)
 #define USE_SSE2
+#endif
 #endif
 
 #ifndef HAVE_SSIZE_T

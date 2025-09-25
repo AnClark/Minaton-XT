@@ -1,3 +1,16 @@
+/* AnClark modification 2025/9/25: Only enable SSE2 on x86 platform */
+/* Determine if your platform is x86 / x86_64. Ported from libsndfile. */
+#if (defined __x86_64__) || (defined _M_X64)
+#define CPU_IS_X86_64	1	/* Define both for x86_64 */
+#define CPU_IS_X86		1
+#elif defined (__i486__) || defined (__i586__) || defined (__i686__) || defined (_M_IX86)
+#define CPU_IS_X86 		1
+#define CPU_IS_X86_64 	0
+#else
+#define CPU_IS_X86		0
+#define CPU_IS_X86_64	0
+#endif
+
 /* Set to 1 if the compile is GNU GCC. */
 #cmakedefine01 COMPILER_IS_GCC
 
@@ -176,7 +189,9 @@
 #cmakedefine01 HAVE_UNISTD_H
 
 /* Define to 1 if you have the <immintrin.h> header file. */
+#if CPU_IS_X86
 #cmakedefine01 HAVE_IMMINTRIN_H
+#endif
 
 /* Define to 1 if you have the <stdbool.h> header file. */
 #cmakedefine01 HAVE_STDBOOL_H
@@ -200,7 +215,9 @@
 #cmakedefine01 OS_IS_WIN32
 
 /* Set to 1 if SSE2 is enabled */
+#if CPU_IS_X86
 #cmakedefine USE_SSE2
+#endif
 
 /* Name of package */
 #define PACKAGE "@PACKAGE_NAME@"
