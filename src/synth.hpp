@@ -40,7 +40,7 @@ public:
     void on(unsigned char, unsigned char);
     void init();
     void cleanup();
-    string bundle_path;
+    [[maybe_unused]] string bundle_path; // NOTE: Now unneeded
     float master_volume;
     float adsr_osc2_amount1;
     float adsr_osc3_amount2;

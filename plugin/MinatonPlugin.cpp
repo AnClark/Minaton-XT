@@ -18,7 +18,8 @@ MinatonPlugin::MinatonPlugin()
     , m_volumeReciprocalDivFactor(0.0f)
     , m_lfoDelay(0.0f)
 {
-    // TODO: Integrate waves as internal resources
+    // NOTE: Oscillator waves have already been integrated as internal resources.
+    //       Bundle path is now meaningless and unneeded.
     fSynthesizer->set_bundle_path("/home/anclark/Sources/minaton/src/");
 
     fSynthesizer->init();
