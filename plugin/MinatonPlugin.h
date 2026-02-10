@@ -58,6 +58,9 @@ class MinatonPlugin : public Plugin {
     // Reusable parameters
     float m_volumeReciprocalDivFactor;
 
+    // LFO delay counter for synchronization
+    float m_lfoDelay;
+
 public:
     MinatonPlugin();
     ~MinatonPlugin();

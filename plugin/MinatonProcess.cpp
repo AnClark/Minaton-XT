@@ -42,17 +42,16 @@ static void mixer_out_sanitize(float& mixer_out)
 void MinatonPlugin::_processAudioFrame(float* audio_l, float* audio_r, uint32_t frame_index)
 {
     float mix1 = 0, mix2 = 0, mix3 = 0;
-    volatile float delay; // LFO delay before every cycle
-                          // May be optimized out when building with -O3.
-                          // Defining with volatile can prevent unexpected optimization.
 
     fSynthesizer->dca_update();
 
-    delay++;
-    if (delay > 20) {
+    // LFO delay counter: Update LFOs every 20 audio frames to reduce CPU usage
+    // while maintaining smooth modulation
+    m_lfoDelay++;
+    if (m_lfoDelay > 20) {
         fSynthesizer->dco_cycle(3);
         fSynthesizer->dco_cycle(4);
-        delay = 0;
+        m_lfoDelay = 0;
     }
 
     if (fSynthesizer->active1) {
