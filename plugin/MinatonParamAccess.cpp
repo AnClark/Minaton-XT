@@ -1,4 +1,5 @@
 #include "MinatonPlugin.h"
+#include <cmath>
 
 static float calculate_volume_division_factor(float volume_param)
 {
@@ -10,18 +11,31 @@ static float calculate_volume_division_factor(float volume_param)
         volume_param = 5;
     }
 
-    // Transform volume parameter to actual volume division factor.
-    // Conversion conforms to this procedure:
-    //     1. Let x = volume param, y = target volume div factor.
-    //     2. (x, y) should satisfy this map:
-    //        * When x = 5,   y = 95
-    //        * When x = 100, y = 5
-    //     3. So we get two points in rectangular coordinate system.
-    //        Then we calculate the linear function via this formula:
-    //          (y-y1) / (y2-y1) = (x-x1) / (x2-x1), x1≠x2，y1≠y2.
+    // Transform volume parameter to actual volume division factor using logarithmic (dB) scale.
+    // This provides natural volume perception matching human hearing and typical synthesizers.
     //
-    // The expression below conforms to the result function.
-    return (-90.0f / 95.0f) * volume_param + (9475.0f / 95.0f);
+    // Conversion procedure:
+    //     1. Map volume_param [5, 100] to dB range [-39.6, -14.0]:
+    //        - When volume_param = 5   => -39.6 dB (division_factor ≈ 95)
+    //        - When volume_param = 100 => -14.0 dB (division_factor ≈ 5)
+    //        This range matches the original linear logic's attenuation range [1/95, 1/5]
+    //        to prevent output overload while maintaining logarithmic perception.
+    //     2. Convert dB to linear amplitude: amplitude = 10^(dB/20)
+    //     3. Return reciprocal as division factor: 1 / amplitude
+    //
+    // Formula derivation:
+    //     dB = -39.6 + (25.6 * (volume_param - 5) / 95)
+    //     amplitude = 10^(dB / 20)
+    //     division_factor = 1 / amplitude
+    
+    // Map [5, 100] to [-39.6, -14.0] dB
+    const float dB = -39.6f + (25.6f * (volume_param - 5.0f) / 95.0f);
+    
+    // Convert dB to linear amplitude
+    const float amplitude = powf(10.0f, dB / 20.0f);
+    
+    // Return reciprocal as division factor
+    return 1.0f / amplitude;
 }
 
 float MinatonPlugin::_obtainSynthParameter(MinatonParamId index) const
