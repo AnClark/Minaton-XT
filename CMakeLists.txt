@@ -112,7 +112,6 @@ dpf_add_plugin (${PROJECT_NAME}
         plugin/MinatonPlugin.cpp
         plugin/MinatonProcess.cpp
         plugin/MinatonParamAccess.cpp
-        vendor/resampler/resampler.cpp
     FILES_UI
         plugin/MinatonUI.cpp
         plugin/MinatonUIHelper.cpp
