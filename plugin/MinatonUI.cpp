@@ -109,8 +109,8 @@ MinatonUI::MinatonUI()
     // Initialize preset manager
     fPresetManager = new MinatonPresetManager(this);
 
-    // Menu (example)
-    initRightClickMenu();
+    // Initialize ImGui UI
+    fImGuiUI = new MinatonImGuiUI(getTopLevelWidget(), this);
 }
 
 void MinatonUI::parameterChanged(uint32_t index, float value)

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "DearImGui.hpp"
 #include "DistrhoUI.hpp"
 #include "ImageWidgets.hpp"
-#include "MenuWidget.hpp"
 
 #include "MinatonParams.h"
 
@@ -14,18 +14,18 @@ using DGL_NAMESPACE::ImageSwitch;
 
 class MinatonPresetManager;
 
-using DISTRHO::MenuWidget;
-
 START_NAMESPACE_DISTRHO
 
 // -----------------------------------------------------------------------
+
+// Forward decls.
+class MinatonImGuiUI;
 
 class MinatonUI : public UI,
                   public ImageButton::Callback,
                   public ImageKnob::Callback,
                   public ImageSlider::Callback,
                   public ImageSwitch::Callback,
-                  public MenuWidget::Callback,
                   public IdleCallback {
 public:
     MinatonUI();
@@ -47,14 +47,6 @@ protected:
     void imageSliderDragStarted(ImageSlider* slider) override;
     void imageSliderDragFinished(ImageSlider* slider) override;
     void imageSliderValueChanged(ImageSlider* slider, float value) override;
-
-    // -------------------------------------------------------------------
-    // Right-click menu implementation
-
-    void initRightClickMenu();
-    void menuItemSelected(const int id) override;
-    bool onMouse(const MouseEvent& ev) override;
-    bool onMotion(const MotionEvent& ev) override;
 
     void onDisplay() override;
 
@@ -110,7 +102,11 @@ private:
 
     ScopedPointer<ImageButton> fPanic;
 
-    ScopedPointer<MenuWidget> fRightClickMenu;
+    // -------------------------------------------------------------------
+    // Dear ImGui UI component
+
+    ScopedPointer<MinatonImGuiUI> fImGuiUI;
+    friend class MinatonImGuiUI;
 
     // -------------------------------------------------------------------
     // Helpers
@@ -135,6 +131,28 @@ private:
 };
 
 // -----------------------------------------------------------------------
+// Dear ImGui UI component implementation
+
+class MinatonImGuiUI : public ImGuiTopLevelWidget {
+
+public:
+    MinatonUI* ui;
+
+    MinatonImGuiUI(TopLevelWidget* const tlw, MinatonUI* const ui)
+        : ImGuiTopLevelWidget(tlw->getWindow())
+        , ui(ui)
+        , _selectedPresetId(-1)
+        , _isAboutWindowOpen(false)
+    {
+    }
+
+protected:
+    void onImGuiDisplay() override;
+
+private:
+    int _selectedPresetId;
+    bool _isAboutWindowOpen;
+};
 
 // --------------------------------
 // Button IDs

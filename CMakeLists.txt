@@ -155,22 +155,17 @@ target_link_libraries (${PROJECT_NAME} PRIVATE ${LINK_LIBSAMPLERATE} ${LINK_LIBS
 include (FactoryPresets)
 
 #
-# Context menu support
+# Dear ImGui context menu & overlay widget support
 #
 
-# Menu widget by Wolf Plugins (https://github.com/wolf-plugins/wolf-shaper)
-set (WOLF_WIDGETS_SOURCE
-    ext/WolfWidgets/Margin.cpp
-    ext/WolfWidgets/WolfWidget.cpp
-    ext/WolfWidgets/MenuWidget.cpp
-    ext/WolfWidgets/Fonts/chivo_bold.cpp
-)
+# Dear ImGui sources
+set (DEAR_IMGUI_SOURCE vendor/dpf-widgets/opengl/DearImGui.cpp)
 
 target_sources (${PROJECT_NAME}-ui PRIVATE
-    ${WOLF_WIDGETS_SOURCE}
+    ${DEAR_IMGUI_SOURCE}
     plugin/MinatonUIMenu.cpp
 )
 
 target_include_directories (${PROJECT_NAME}-ui PRIVATE
-    ext/WolfWidgets
+    vendor/dpf-widgets/opengl
 )
