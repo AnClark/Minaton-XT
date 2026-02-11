@@ -6,66 +6,6 @@
 
 #include "synth.hpp"
 
-//------------------------------
-
-void minaton_synth::init()
-{
-
-    stringstream ss;
-    number_of_waves = 0;
-
-    ss.str("");
-    ss << bundle_path << "waves/440Hz-sine.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/440Hz-saw.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/440Hz-square.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/440Hz-triangle.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/440Hz-triangle.wav"; // dummy wave white noise generator is #4
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/1Hz-sine.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/1Hz-saw.wav";
-    add_wave("sine", ss.str());
-    ss.str("");
-    ss << bundle_path << "waves/1Hz-square.wav";
-    add_wave("sine", ss.str());
-
-    init_src();
-
-    number_of_dcos = 0;
-
-    add_dco();
-    set_dco_wave(0, 1);
-    set_dco_frequency(0, 1);
-
-    add_dco();
-    set_dco_wave(1, 1);
-    set_dco_frequency(1, 1);
-
-    add_dco();
-    set_dco_wave(2, 1);
-    set_dco_frequency(2, 1);
-
-    add_dco();
-    set_dco_wave(3, 5);
-    set_dco_frequency(3, 0.0001);
-
-    add_dco();
-    set_dco_wave(4, 5);
-    set_dco_frequency(4, 0.0001);
-
-    init_dcas();
-}
-
 //--------------------------------------------------------------------
 
 void minaton_synth::cleanup()
@@ -169,32 +109,6 @@ void minaton_synth::set_lfo1_amount(int dco_number, float value)
 void minaton_synth::set_lfo2_amount(int dco_number, float value)
 {
     dco_lfo2_amount[dco_number] = value;
-}
-
-//---------------- Add new waveform ------------------
-
-int minaton_synth::add_wave(string name, string file)
-{
-    int readcount;
-
-    waves_name[number_of_waves] = name;
-
-    if (!(infile = sf_open(file.c_str(), SFM_READ, &waves_sfinfo[number_of_waves]))) {
-        cout << "Unable to open input file - " << file.c_str() << " " << sf_strerror(infile) << endl;
-        sf_perror(NULL);
-        return 1;
-    }
-
-    waves_sample[number_of_waves] = new float[waves_sfinfo[number_of_waves].frames * waves_sfinfo[number_of_waves].channels];
-    readcount = sf_read_float(infile, waves_sample[number_of_waves], (waves_sfinfo[number_of_waves].channels * waves_sfinfo[number_of_waves].frames));
-
-    sf_close(infile);
-
-    // cout << "Loaded waveform - " << name << waves_sfinfo[number_of_waves].frames << endl;
-
-    ++number_of_waves;
-
-    return number_of_waves - 1;
 }
 
 //---------------------------------------------------------------

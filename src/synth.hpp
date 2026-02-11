@@ -38,7 +38,7 @@ enum envelop_state {
 class minaton_synth {
 public:
     void on(unsigned char, unsigned char);
-    void init();
+    virtual void init() = 0;
     void cleanup();
     [[maybe_unused]] string bundle_path; // NOTE: Now unneeded
     float master_volume;
@@ -190,7 +190,7 @@ public:
     void dco_on(int);
     void dco_off(int);
     bool get_dco_state(int);
-    int add_wave(string, string);
+    virtual int add_wave(string, const unsigned char*, size_t) = 0; // NOTE: Replaced the legacy add_wave() implementation (which loads from file)
     void add_dco();
     float get_dco_out(int);
     float dco_cycle(int);
