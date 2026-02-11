@@ -19,8 +19,9 @@ list (APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 set (USE_SYSTEM_LIBSNDFILE OFF CACHE BOOL "Prefer system libsndfile (shared library). Otherwise build from source (static library)")
 set (USE_SYSTEM_LIBSAMPLERATE OFF CACHE BOOL "Prefer system libsamplerate (shared library). Otherwise build from source (static library)")
+set (BUILD_JACK_STANDALONE OFF CACHE BOOL "Build JACK standalone application on supported platforms (if JACK is installed)")
 
-if (USE_SYSTEM_LIBSNDFILE OR USE_SYSTEM_LIBSAMPLERATE)
+if (USE_SYSTEM_LIBSNDFILE OR USE_SYSTEM_LIBSAMPLERATE OR BUILD_JACK_STANDALONE)
     find_package (PkgConfig REQUIRED)
 endif ()
 
@@ -98,13 +99,19 @@ add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 # Build plug-ins
 #
 
-# Only build standalone (JACK) application on Linux
-if (UNIX AND NOT APPLE)
-    set (BUILD_STANDALONE jack)
+# Only build standalone (JACK) application if JACK is installed on system
+if (BUILD_JACK_STANDALONE)
+    pkg_check_modules (JACK IMPORTED_TARGET REQUIRED jack)
+    if (JACK_FOUND)
+        message (STATUS "JACK found. Will build standalone application.")
+        set (JACK_TARGET jack)
+    else ()
+        message (STATUS "JACK not found. Skipping standalone application.")
+    endif ()
 endif ()
 
 dpf_add_plugin (${PROJECT_NAME}
-    TARGETS vst2 vst3 lv2 clap ${BUILD_STANDALONE}
+    TARGETS vst2 vst3 lv2 clap ${JACK_TARGET}
     UI_TYPE opengl
     FILES_DSP
         src/synth.cpp
