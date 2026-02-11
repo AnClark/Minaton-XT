@@ -11,9 +11,11 @@ static void decode_compressed_file_array(const void* compressed_file_data, const
     unsigned char* buf_decompressed_data = (unsigned char*)malloc(buf_decompressed_size);
     minaton_stb::stb_decompress(buf_decompressed_data, (const unsigned char*)compressed_file_data, (unsigned int)compressed_file_size);
 
-    std::stringstream output_builder;
-    output_builder << buf_decompressed_data;
-    decompressed_file_data = output_builder.str();
+    // Use assign() with length to avoid buffer overflow (data is not null-terminated)
+    decompressed_file_data.assign(reinterpret_cast<char*>(buf_decompressed_data), buf_decompressed_size);
+
+    // Remember to free the decompressed data buffer after use to avoid memory leaks.
+    free(buf_decompressed_data);
 }
 
 MinatonPresetManager::MinatonPresetManager(DISTRHO::MinatonUI* uiInstance)
