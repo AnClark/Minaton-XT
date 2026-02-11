@@ -2,123 +2,53 @@
 #include "MinatonUI.h"
 
 enum MinatonMenuId {
-    MENU_ABOUT = 1200,
-    MENU_DEFAULT_PRESET = 1201,
+    MENU_DEFAULT_PRESET = -1,
     MENU_FIRST_PRESET
 };
 
-void MinatonUI::initRightClickMenu()
+void MinatonImGuiUI::onImGuiDisplay()
 {
-    fRightClickMenu = new MenuWidget(this);
+    //
+    // Toolbar area - resides below the plugin logo
+    //
+    if (ImGui::Begin("Main Tools", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground)) {
+        ImGui::SetWindowPos(ImVec2(20, 504));
+        ImGui::SetWindowSize(ImVec2(100, 50));
 
-    // Preset menu
-    fRightClickMenu->addSection("Presets");
-    fRightClickMenu->addItem(MENU_DEFAULT_PRESET, "Default Patch");
-    for (uint32_t i = 0; i < fPresetManager->getEmbedPresetCount(); i++) {
-        fRightClickMenu->addItem(MENU_FIRST_PRESET + i, fPresetManager->getEmbedPresetById(i).name.c_str());
-    }
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f);
 
-    fRightClickMenu->setCallback(this);
-}
-
-void MinatonUI::menuItemSelected(const int id)
-{
-    // Apply preset patch
-    if (id == MENU_DEFAULT_PRESET) {
-        fPresetManager->loadDefaultPatch(true); // Pass param "true" means write log to console
-    } else {
-        const int patchId = id - MENU_FIRST_PRESET;
-        fPresetManager->loadPatchById(patchId);
-    }
-
-    // Mark currently selected preset
-    fRightClickMenu->setItemSelected(id);
-}
-
-/**
- * To process menu event, you need to override onMouse() callback.
- * Menu event processing always has the highest priority.
- */
-bool MinatonUI::onMouse(const MouseEvent& ev)
-{
-    switch (ev.button) {
-    case kMouseButtonLeft: {
-        //
-        // First, if menu is active, handle menu click event.
-        //
-        if (fRightClickMenu->isVisible()) {
-            // The 2nd param is "offset". Set to (0, 0) so that I can open menu within window everywhere
-            const auto window_pos = Point<int>(0, 0);
-            fRightClickMenu->mouseEvent(ev, window_pos);
-
-            // Remember to repaint, otherwise the menu will stuck on screen!
-            repaint();
-
-            return true;
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0x3A, 0x3A, 0x3A, 0xFF));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x5A, 0x5A, 0x5A, 0xFF));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x7A, 0x7A, 0x7A, 0xFF));
+        if (ImGui::Button(" Presets ", ImVec2(0, 25))) {
+            ImGui::OpenPopup("preset_menu");
         }
-        //
-        // Second, if no menu active, handle default UI widget controls.
-        //
-        else {
-            return UI::onMouse(ev);
-        }
-    }
-    case kMouseButtonRight: {
-        //
-        // Show popup menu on right-click
-        //
-        if (ev.press) {
-            // Get click position and the bounds of the window
-            // Set my_pos_absolute to 0, so the menu can be shown within the bound of the window.
-            const auto my_pos_absolute = Point<int>(
-                0,
-                0);
-            const auto widget_bounds = Rectangle<int>(
-                0, 0,
-                getWidth(), getHeight());
-            fRightClickMenu->show(my_pos_absolute, ev.pos, widget_bounds);
+        ImGui::PopStyleColor(3);
 
-            // Remember to repaint, otherwise when you right-click multiple times, menus will stuck on screen!
-            // [This issue occured on Win32 (Wine).]
-            repaint();
+        if (ImGui::BeginPopup("preset_menu")) {
+            ImGui::SeparatorText("Factory Presets");
+
+            for (uint32_t i = 0; i < ui->fPresetManager->getEmbedPresetCount(); i++) {
+                const auto& preset = ui->fPresetManager->getEmbedPresetById(i);
+                if (ImGui::MenuItem(preset.name.c_str(), NULL, (_selectedPresetId == MENU_FIRST_PRESET + i))) {
+                    ui->fPresetManager->loadPatchById(i);
+                    _selectedPresetId = MENU_FIRST_PRESET + i;
+                }
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Default Patch", NULL, (_selectedPresetId == MENU_DEFAULT_PRESET))) {
+                ui->fPresetManager->loadDefaultPatch(true);
+                _selectedPresetId = MENU_DEFAULT_PRESET;
+            }
+
+            ImGui::EndPopup();
         }
 
-        return true;
+        ImGui::PopStyleVar(2);
+
+        ImGui::End();
     }
-    case kMouseButtonMiddle:
-        //
-        // Close any popup menu on middle-button click, then handle default UI event.
-        //
-        fRightClickMenu->hide();
-
-        // Remember to repaint, otherwise the menu will stuck on screen!
-        repaint();
-
-        return UI::onMouse(ev);
-    }
-
-    return false;
-}
-
-/**
- * onMotion() handles mouse movement events (e.g. hovering).
- * To process menu event, you need to override onMouse() callback.
- * Menu on-hover highlighting is controlled by onMotion().
- */
-bool MinatonUI::onMotion(const MotionEvent& ev)
-{
-    //
-    // First, handle menu moue motion (hovering) events.
-    //
-    const Point<int> window_pos(0, 0);
-
-    if (fRightClickMenu->motionEvent(ev, window_pos)) {
-        repaint(); // Remember to repaint, otherwise hovered menu item won't be highlighted!
-        return true;
-    }
-
-    //
-    // Second, handle default UI widget controls.
-    //
-    return UI::onMotion(ev);
 }
