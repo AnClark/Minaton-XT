@@ -34,7 +34,7 @@ int MinatonPresetManager::loadPatchById(uint32_t patchId)
     std::string decoded_preset_data; // Stores decoded data of built-in preset
 
     EmbedPresetInfo target_patch;
-    if (patchId < 0 || patchId > fEmbedFactoryPresets.size()) {
+    if (patchId >= fEmbedFactoryPresets.size()) {
         d_stderr2("[PRESET] Invalid patch ID");
         return -1;
     }
@@ -71,7 +71,7 @@ uint32_t MinatonPresetManager::getEmbedPresetCount()
 
 EmbedPresetInfo MinatonPresetManager::getEmbedPresetById(uint32_t id)
 {
-    if (id < 0 && id >= fEmbedFactoryPresets.size()) {
+    if (id >= fEmbedFactoryPresets.size()) {
         d_stderr2("[PRESET] ERROR: invalid preset index %d", id);
         return EmbedPresetInfo();
     }
