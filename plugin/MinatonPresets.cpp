@@ -8,18 +8,14 @@
 static void decode_compressed_file_array(const void* compressed_file_data, const int compressed_file_size, std::string& decompressed_file_data)
 {
     const unsigned int buf_decompressed_size = minaton_stb::stb_decompress_length((const unsigned char*)compressed_file_data);
-    unsigned char* buf_decompressed_data = (unsigned char*)malloc(buf_decompressed_size);
-    if (!minaton_stb::stb_decompress(buf_decompressed_data, (const unsigned char*)compressed_file_data, (unsigned int)compressed_file_size)) {
+    std::vector<unsigned char> buf_decompressed_data(buf_decompressed_size);
+    if (!minaton_stb::stb_decompress(buf_decompressed_data.data(), (const unsigned char*)compressed_file_data, (unsigned int)compressed_file_size)) {
         d_stderr2("[PRESET] ERROR: failed to decompress preset data");
-        free(buf_decompressed_data);
         return;
     }
 
     // Use assign() with length to avoid buffer overflow (data is not null-terminated)
-    decompressed_file_data.assign(reinterpret_cast<char*>(buf_decompressed_data), buf_decompressed_size);
-
-    // Remember to free the decompressed data buffer after use to avoid memory leaks.
-    free(buf_decompressed_data);
+    decompressed_file_data.assign(reinterpret_cast<char*>(buf_decompressed_data.data()), buf_decompressed_size);
 }
 
 MinatonPresetManager::MinatonPresetManager(DISTRHO::MinatonUI* uiInstance)
