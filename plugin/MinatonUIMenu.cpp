@@ -13,7 +13,7 @@ void MinatonImGuiUI::onImGuiDisplay()
     // Toolbar area - resides below the plugin logo
     //
     if (ImGui::Begin("Main Tools", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground)) {
-        ImGui::SetWindowPos(ImVec2(20, 504));
+        ImGui::SetWindowPos(ImVec2(20 + 2, 504));
         ImGui::SetWindowSize(ImVec2(100, 50 + 20));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
@@ -22,10 +22,10 @@ void MinatonImGuiUI::onImGuiDisplay()
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0x3A, 0x3A, 0x3A, 0xFF));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0x5A, 0x5A, 0x5A, 0xFF));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0x7A, 0x7A, 0x7A, 0xFF));
-        if (ImGui::Button(" Presets ", ImVec2(60, 25))) {
+        if (ImGui::Button("Presets", ImVec2(60 - 2, 25 - 2))) {
             ImGui::OpenPopup("preset_menu");
         }
-        if (ImGui::Button("Help", ImVec2(60, 25))) {
+        if (ImGui::Button("Help", ImVec2(60 - 2, 25 - 2))) {
             _isAboutWindowOpen = !_isAboutWindowOpen;
         }
         ImGui::PopStyleColor(3);
