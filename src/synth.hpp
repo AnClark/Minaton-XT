@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
+#include <mutex>
 #include <samplerate.h>
 #include <sndfile.h>
 #include <sstream>
@@ -228,4 +229,6 @@ public:
     void set_bundle_path(const char*);
 
 protected:
+    // Mutex to protect set_freq() from race conditions between UI and audio threads
+    std::mutex fResamplerMutex;
 };

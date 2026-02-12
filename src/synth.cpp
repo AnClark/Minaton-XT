@@ -87,6 +87,17 @@ void minaton_synth::set_freq(int dco_number, float f)
     if (dco_number == 4)
         buffer = &lfo2_buffer[0];
 
+    // Lock mutex to prevent race conditions when UI thread calls set_freq
+    // while audio thread is processing. This protects libsamplerate state.
+    //
+    // How to reproduce race condition before this fix:
+    //   1. Build JACK standalone plugin in Release mode.
+    //   2. Run plugin. (Windows is preferred for this test.)
+    //   3. Load a patch from "Preset" menu. (e.g. "LAZER" or "JUNOBASS")
+    //   4. If you're lucky, the plugin will crash immediately.
+    //
+    std::lock_guard<std::mutex> lock(fResamplerMutex);
+    
     src_reset(src_test);
     mySampleData.data_in = waves_sample[dco_wave[dco_number]];
     mySampleData.input_frames = waves_sfinfo[dco_wave[dco_number]].frames;
