@@ -10,4 +10,16 @@
 /* Define the patch version number. */
 #define VERSION_PATCH @PROJECT_VERSION_PATCH@
 
+/* Define target system name. */
+#define TARGET_SYSTEM_NAME "@CMAKE_SYSTEM_NAME@"
+
+/* Define target system architecture. */
+#define TARGET_SYSTEM_ARCH "@CMAKE_SYSTEM_PROCESSOR@"
+
+/* Define build type. */
+#define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+
+/* Define compiler name and version. */
+#define COMPILER_NAME_VERSION "@CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@"
+
 #endif  // CONFIG_H

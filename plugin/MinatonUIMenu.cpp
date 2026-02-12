@@ -438,6 +438,20 @@ void MinatonImGuiUI::onImGuiDisplay()
                         ImGui::BulletText("ThunderOx - Original Minaton LV2 Plugin");
                         ImGui::BulletText("AnClark Liu - Minaton XT");
 
+                        ImGui::SeparatorText("Build Info");
+                        if (ImGui::BeginTable("BuildInfoTable", 2, ImGuiTableFlags_RowBg)) {
+                            ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
+                            ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthStretch);
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::BulletText("Target platform: " TARGET_SYSTEM_NAME);
+                            ImGui::BulletText("Architecture: " TARGET_SYSTEM_ARCH);
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::BulletText("Build Type: " BUILD_TYPE);
+                            ImGui::BulletText("Compiler: " COMPILER_NAME_VERSION);
+                            ImGui::EndTable();
+                        }
+
                         ImGui::SeparatorText("License");
                         ImGui::TextWrapped("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.");
                         ImGui::TextWrapped("VST is a trademark of Steinberg GmbH.");
