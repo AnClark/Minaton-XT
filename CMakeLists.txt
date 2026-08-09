@@ -65,7 +65,7 @@ else ()
     set (LIBSAMPLERATE_EXAMPLES OFF CACHE BOOL "")
 
     add_subdirectory (vendor/libsamplerate)
-
+    target_compile_options (samplerate PRIVATE -fPIC)
     include_directories (vendor/libsamplerate/include)
 endif ()
 
