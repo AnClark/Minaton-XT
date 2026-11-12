@@ -7,10 +7,6 @@ START_NAMESPACE_DISTRHO
 
 MinatonPlugin::MinatonPlugin()
     : Plugin(MinatonParamId::PARAM_COUNT, 0, 0) // parameters, programs, states
-#if 0 /* Now we prefer fixed size of buffer */
-    , buffer_before_resample_l(nullptr)
-    , buffer_before_resample_r(nullptr)
-#endif
     , m_srcMaster_L(nullptr)
     , m_srcMaster_R(nullptr)
     , m_resampleBufferReadIndex(0)
@@ -105,17 +101,6 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         _processMidi(ev.data, ev.size);
     }
 
-    // Sanity check for host buffer size.
-    // I can't prevents some hosts to give Minaton extremely large buffers :-0
-    // TODO: Show a warning on UI side.
-    if (unlikely(frames > MAX_HOST_BUFFER_SIZE)) {
-        d_stderr2("[DSP] [FATAL!] Your host gives Minaton too large buffer (size: %d)! Max accepted size should be %d", frames, MAX_HOST_BUFFER_SIZE);
-
-        memset(outL, 0, sizeof(float) * frames);
-        memset(outR, 0, sizeof(float) * frames);
-        return;
-    }
-
     // Check if no oscillators enabled or volume at zero.
     // Once true, clear ring buffer and return.
     // NOTE: MIDI events are already consumed above, so synth state stays in
@@ -155,14 +140,15 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
          * Resampler uses libsamplerate for higher quality.
          */
 
-#if 0 /* Now we prefer fixed size of buffer */
-        // Check if buffer is available. Buffer may be unavailable when being reallocated
-        if (!buffer_before_resample_l || !buffer_before_resample_r) {
-            memset(outL, 0, sizeof(float) * frames);
-            memset(outR, 0, sizeof(float) * frames);
-            return;
-        }
-#endif
+        // The host buffer size is only a hint (see DPF getBufferSize() docs):
+        // the host may call run() with more frames than the last
+        // bufferSizeChanged() reported. Grow on demand instead of bailing out
+        // with silence or writing out of bounds. resize() only allocates when
+        // the buffer actually grows, so this is a no-op on the regular path.
+        if (buffer_before_resample_l.size() < frames)
+            buffer_before_resample_l.resize(frames);
+        if (buffer_before_resample_r.size() < frames)
+            buffer_before_resample_r.resize(frames);
 
         // Play remaining frames of resampled buffer
         while (frame_index < frames && m_resampleBufferReadIndex < m_sizeResampled) {
@@ -176,7 +162,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
         // If all resampled buffers played, and there's still space left in output buffer, let's require new samples
         while (frame_index < frames) {
             for (uint32_t x = 0; x < frames; x++) {
-                _processAudioFrame(buffer_before_resample_l, buffer_before_resample_r, x);
+                _processAudioFrame(buffer_before_resample_l.data(), buffer_before_resample_r.data(), x);
             }
 
             // Process each channel respectively.
@@ -186,7 +172,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             //   Only resampled_size_l is used.
             // - Do NOT change the last index of resampled buffer (by modifying resampled_size_l), otherwise you will
             //   encounter unexpected loud noise blowing up your DAW!
-            m_srcData_L.data_in = buffer_before_resample_l;
+            m_srcData_L.data_in = buffer_before_resample_l.data();
             m_srcData_L.input_frames = frames;
             m_srcData_L.data_out = buffer_after_resample_l;
             m_srcData_L.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
@@ -194,7 +180,7 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
             src_process(m_srcMaster_L, &m_srcData_L);
             m_sizeResampled_L = m_srcData_L.output_frames_gen;
 
-            m_srcData_R.data_in = buffer_before_resample_r;
+            m_srcData_R.data_in = buffer_before_resample_r.data();
             m_srcData_R.input_frames = frames;
             m_srcData_R.data_out = buffer_after_resample_r;
             m_srcData_R.output_frames = MAX_RESAMPLED_BUFFER_SIZE;
@@ -248,14 +234,11 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
     m_srcMaster_L = src_new(SRC_LINEAR, 1, &m_srcErrNo);
     m_srcMaster_R = src_new(SRC_LINEAR, 1, &m_srcErrNo);
 
-#if 0 /* Now we prefer fixed size of buffer */
-    buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
-    buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
-#else
-    // Set resampler input buffer to zero in case unexpected noise generates
-    memset(buffer_before_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
-    memset(buffer_before_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
-#endif
+    // NOTE: resize() value-initializes the new elements to 0.0f.
+    //       Do NOT call clear() afterwards: clear() EMPTIES the vector
+    //       (size() becomes 0), which makes run() output silence forever.
+    buffer_before_resample_l.resize(bufferSize);
+    buffer_before_resample_r.resize(bufferSize);
 
     // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
     memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
@@ -264,17 +247,10 @@ void MinatonPlugin::initResampler(uint32_t bufferSize)
 
 void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 {
-#if 0 /* Now we prefer fixed size of buffer */
-    free(buffer_before_resample_l);
-    free(buffer_before_resample_r);
-
-    buffer_before_resample_l = (float*)malloc(sizeof(float) * bufferSize);
-    buffer_before_resample_r = (float*)malloc(sizeof(float) * bufferSize);
-#else
-    // Set resampler input buffer to zero in case unexpected noise generates
-    memset(buffer_before_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
-    memset(buffer_before_resample_r, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
-#endif
+    // NOTE: resize() value-initializes to 0.0f; see initResampler() about
+    //       why clear() must NOT be used here.
+    buffer_before_resample_l.resize(bufferSize);
+    buffer_before_resample_r.resize(bufferSize);
 
     // Must set resampler output buffer to zero, otherwise you may encounter noises and overflow waves!
     memset(buffer_after_resample_l, 0, sizeof(float) * MAX_RESAMPLED_BUFFER_SIZE);
@@ -282,6 +258,12 @@ void MinatonPlugin::reinitResampler(uint32_t bufferSize, uint32_t sampleRate)
 
     src_reset(m_srcMaster_L);
     src_reset(m_srcMaster_R);
+
+    // Drop stale resampled data. The after-resample buffers were just zeroed
+    // above, so playing back the old (now zeroed) region would only create a
+    // silent gap; regenerating immediately avoids it.
+    m_sizeResampled = 0;
+    m_resampleBufferReadIndex = 0;
 }
 
 void MinatonPlugin::cleanupResampler()

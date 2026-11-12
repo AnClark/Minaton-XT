@@ -10,6 +10,7 @@
 #include <samplerate.h>
 
 #include <memory>
+#include <vector>
 
 // Sizes of maximum resampler buffer size
 // NOTE:
@@ -17,7 +18,7 @@
 // * To prevent aliases, max output buffer size should be large enough:
 //   - if input buffer size is 2048, output buffer should be (2048 * 5)
 //   - if MAX_HOST_BUFFER_SIZE >= 4096, 4 times is OK
-constexpr size_t MAX_HOST_BUFFER_SIZE = 2048; // Resampler input
+constexpr size_t MAX_HOST_BUFFER_SIZE = 2048; // Resampler input. (No longer used. For reference only.)
 constexpr size_t MAX_RESAMPLED_BUFFER_SIZE = 2048 * 5; // Resampler output
 
 // Constants
@@ -45,11 +46,7 @@ class MinatonPlugin : public Plugin {
     SRC_DATA m_srcData_L, m_srcData_R;
     int m_srcErrNo;
 
-#if 0 /* Now we prefer fixed size of buffer */
-    float *buffer_before_resample_l, *buffer_before_resample_r;
-#else
-    float buffer_before_resample_l[MAX_HOST_BUFFER_SIZE], buffer_before_resample_r[MAX_HOST_BUFFER_SIZE];
-#endif
+    std::vector<float> buffer_before_resample_l, buffer_before_resample_r;
 
     float buffer_after_resample_l[MAX_RESAMPLED_BUFFER_SIZE], buffer_after_resample_r[MAX_RESAMPLED_BUFFER_SIZE];
     uint64_t m_sizeResampled, m_sizeResampled_L, m_sizeResampled_R;
