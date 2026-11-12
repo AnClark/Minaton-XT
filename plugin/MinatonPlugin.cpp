@@ -96,6 +96,15 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
     // zero), desyncing the synth state from the host: e.g. a note pressed
     // while muted would never reach last_note/envelopes, and a later note-off
     // would then be mismatched.
+    //
+    // NOTE: Events are intentionally batch-processed at the buffer start
+    //       (not sample-accurate). Splitting the render loop with DPF's
+    //       AudioMidiSyncHelper was evaluated and rejected: it would only
+    //       help the exact-44100 Hz path, while this plugin relies on the
+    //       resample path to support other sample rates, where timing is
+    //       already approximate anyway. DPF's helper also has edge-case bugs
+    //       (duplicate delivery when all events are at frame 0, runaway on
+    //       frame >= frames) that would need workarounds.
     for (uint32_t i = 0; i < midiEventCount; ++i) {
         const MidiEvent& ev(midiEvents[i]);
         _processMidi(ev.data, ev.size);
