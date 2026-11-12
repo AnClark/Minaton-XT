@@ -93,6 +93,18 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
     float* const outL = outputs[0];
     float* const outR = outputs[1];
 
+    // Process MIDI events BEFORE any early-return path below.
+    //
+    // Otherwise note-on/note-off and other events would be silently dropped
+    // when the synth is muted (all oscillators disabled, or master volume at
+    // zero), desyncing the synth state from the host: e.g. a note pressed
+    // while muted would never reach last_note/envelopes, and a later note-off
+    // would then be mismatched.
+    for (uint32_t i = 0; i < midiEventCount; ++i) {
+        const MidiEvent& ev(midiEvents[i]);
+        _processMidi(ev.data, ev.size);
+    }
+
     // Sanity check for host buffer size.
     // I can't prevents some hosts to give Minaton extremely large buffers :-0
     // TODO: Show a warning on UI side.
@@ -106,18 +118,14 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 
     // Check if no oscillators enabled or volume at zero.
     // Once true, clear ring buffer and return.
+    // NOTE: MIDI events are already consumed above, so synth state stays in
+    //       sync with the host even while output is muted.
     if (!fSynthesizer->active1 && !fSynthesizer->active2 && !fSynthesizer->active3 || fSynthesizer->master_volume <= MINIMUM_VOLUME) {
         for (int x = 0; x < frames; x++) {
             outL[x] = 0;
             outR[x] = 0;
         }
         return;
-    }
-
-    // Process MIDI events
-    for (uint32_t i = 0; i < midiEventCount; ++i) {
-        const MidiEvent& ev(midiEvents[i]);
-        _processMidi(ev.data, ev.size);
     }
 
     //	++control_delay;
