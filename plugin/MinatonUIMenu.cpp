@@ -57,6 +57,51 @@ void MinatonImGuiUI::onImGuiDisplay()
     }
 
     //
+    // Extra labels - Make use of ImGui::Text().
+    // All labels are contained by a transparent window, setting ImGuiWindowFlags_NoMouseInputs so it will not catch
+    // mouse inputs.
+    //
+    constexpr auto COLOR_EXTRA_LABELS = IM_COL32(200, 200, 200, 255);
+    constexpr auto COLOR_EXTRA_LABELS_SMALL = IM_COL32(200, 200, 200, 202);
+
+    if (ImGui::Begin("Extra labels Container", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground)) {
+        ImGui::SetWindowPos(ImVec2(0, 0));
+        ImGui::SetWindowSize(ImVec2(600, 600));
+
+        // LFOs
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_EXTRA_LABELS);
+            ImGui::PushFont(ImGui::GetFont(), 18.0f);
+
+            ImGui::SetCursorPos(ImVec2(497, 43));
+            ImGui::Text("LFO1");
+
+            ImGui::SetCursorPos(ImVec2(497, 246));
+            ImGui::Text("LFO2");
+
+            ImGui::PopFont();
+            ImGui::PopStyleColor();
+        }
+
+        // Envelopes
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, COLOR_EXTRA_LABELS_SMALL);
+            ImGui::PushFont(ImGui::GetFont(), 12.0f);
+
+            ImGui::SetCursorPos(ImVec2(138, 472 + 2));
+            ImGui::Text("AMP ENVELOPE");
+
+            ImGui::SetCursorPos(ImVec2(135, 376 + 2));
+            ImGui::Text("FILTER ENVELOPE");
+
+            ImGui::PopFont();
+            ImGui::PopStyleColor();      
+        }
+    }
+
+    ImGui::End();
+
+    //
     // Help Window
     //
     {
