@@ -14,7 +14,7 @@ void MinatonImGuiUI::onImGuiDisplay()
     //
     if (ImGui::Begin("Main Tools", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground)) {
         ImGui::SetWindowPos(ImVec2(20 + 2, 504));
-        ImGui::SetWindowSize(ImVec2(100, 50 + 20));
+        ImGui::SetWindowSize(ImVec2(90, 50 + 20));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f);
