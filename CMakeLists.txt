@@ -95,19 +95,30 @@ set (GENERATED_WAVES_DIR ${PROJECT_BINARY_DIR}/generated_waves)
 make_directory (${GENERATED_WAVES_DIR})
 
 # Binary-to-C converter from Dear ImGui
-add_executable (binary_to_compressed_c utils/binary_to_compressed_c.cpp)
-# Only build static converter on Win32 or MinGW cross-compiling
-if (WIN32 AND NOT MSVC)
-    target_link_options (binary_to_compressed_c PRIVATE -static)
-endif ()
+set (binary_to_compressed_c_BUILD_DIR ${PROJECT_BINARY_DIR}/binary_to_compressed_c_build)
+set (binary_to_compressed_c_PATH ${binary_to_compressed_c_BUILD_DIR}/binary_to_compressed_c)
+
+# Always build Binary-to-C converter with local native toolchain, so it can run properly on cross-compilation
+# (especially when cross-building for Windows).
+include (ExternalProject)
+ExternalProject_Add (build_native_binary_to_compressed_c
+  SOURCE_DIR ${PROJECT_SOURCE_DIR}/utils/binary_to_compressed_c
+  BINARY_DIR ${binary_to_compressed_c_BUILD_DIR}
+  CMAKE_ARGS
+      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      "-DCMAKE_TOOLCHAIN_FILE:STRING="    # KEY: Prevent subproject from inheriting cross toolchain via environment variable
+  INSTALL_COMMAND ""
+  BUILD_BYPRODUCTS
+      ${binary_to_compressed_c_PATH}
+)
 
 set (WAVES_DIR ${PROJECT_SOURCE_DIR}/src/waves)
 set (GENERATED_WAVE_HEADER ${GENERATED_WAVES_DIR}/minaton_waves.hpp)
 
 add_custom_command (
     OUTPUT ${GENERATED_WAVE_HEADER}
-    COMMAND ${PROJECT_BINARY_DIR}/binary_to_compressed_c${CMAKE_EXECUTABLE_SUFFIX} ${WAVES_DIR} minaton_wave > ${GENERATED_WAVE_HEADER}
-    DEPENDS binary_to_compressed_c
+    COMMAND ${binary_to_compressed_c_PATH} ${WAVES_DIR} minaton_wave > ${GENERATED_WAVE_HEADER}
+    DEPENDS build_native_binary_to_compressed_c
     VERBATIM
 )
 
