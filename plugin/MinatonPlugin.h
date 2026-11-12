@@ -143,7 +143,7 @@ protected:
     // ----------------------------------------------------------------------------------------------------------------
     // Callbacks (optional)
 
-    void bufferSizeChanged(int newBufferSize);
+    void bufferSizeChanged(uint32_t newBufferSize) override;
     void sampleRateChanged(double newSampleRate) override;
 
 private:
