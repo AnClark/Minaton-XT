@@ -166,7 +166,7 @@ include (FactoryPresets)
 #
 
 # Dear ImGui sources
-set (DEAR_IMGUI_SOURCE vendor/dpf-widgets/opengl/DearImGui.cpp)
+set (DEAR_IMGUI_SOURCE vendor/dpf-widgets/dpf-imgui/DearImGui.cpp)
 
 target_sources (${PROJECT_NAME}-ui PRIVATE
     ${DEAR_IMGUI_SOURCE}
@@ -174,5 +174,5 @@ target_sources (${PROJECT_NAME}-ui PRIVATE
 )
 
 target_include_directories (${PROJECT_NAME}-ui PRIVATE
-    vendor/dpf-widgets/opengl
+    vendor/dpf-widgets/dpf-imgui
 )
