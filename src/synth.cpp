@@ -431,6 +431,26 @@ float minaton_synth::envelope2_out(float input, float amount)
 
 //--------------------------------------------------------
 
+// Minimum attack ramp enforced on both envelopes.
+//
+// The attack increment is pow(0.8, attack) per sample, processed at the
+// internal synthesis rate of 44100 Hz. When Attack is (near) zero that
+// increment reaches 1.0, so the envelope jumps from silence to full level
+// within ONE sample. That step discontinuity is heard as a loud pop ("噗噗")
+// on every note-on, and retriggers overshoot past full level.
+//
+// Capping the per-sample increment gives even zero Attack a ~2 ms linear
+// fade-in: musically instant, but click-free. Attack settings of ~20 or more
+// (already slower than 2 ms) are left untouched.
+static constexpr float MIN_ATTACK_RAMP_SAMPLES = 44100.0f * 0.002f; // 2 ms @ 44.1 kHz
+static constexpr float MAX_ATTACK_STEP = 1.0f / MIN_ATTACK_RAMP_SAMPLES;
+
+static inline float attack_step(float attack)
+{
+    const float step = pow(0.8, attack);
+    return step > MAX_ATTACK_STEP ? MAX_ATTACK_STEP : step;
+}
+
 void minaton_synth::dca_update()
 {
 
@@ -439,10 +459,10 @@ void minaton_synth::dca_update()
 
     if (envelope1.state == ENV_STATE_ATTACK) {
         if (envelope1.level < 1) {
-            if (envelope1.attack == 0) {
-                envelope1.state = ENV_STATE_DECAY;
+            envelope1.level += attack_step(envelope1.attack);
+            if (envelope1.level > 1) {
+                envelope1.level = 1;
             }
-            envelope1.level += pow(0.8, envelope1.attack);
         } else {
             envelope1.state = ENV_STATE_DECAY;
         }
@@ -460,6 +480,9 @@ void minaton_synth::dca_update()
     if (envelope1.state == ENV_STATE_RELEASE) {
         if (envelope1.level > 0) {
             envelope1.level -= pow(0.8, envelope1.release);
+            if (envelope1.level < 0) {
+                envelope1.level = 0;
+            }
         } else {
             envelope1.state = ENV_STATE_DORMANT;
             envelope1.level = 0;
@@ -471,10 +494,10 @@ void minaton_synth::dca_update()
 
     if (envelope2.state == ENV_STATE_ATTACK) {
         if (envelope2.level < 1) {
-            if (envelope2.attack == 0) {
+            envelope2.level += attack_step(envelope2.attack);
+            if (envelope2.level > 1) {
                 envelope2.level = 1;
             }
-            envelope2.level += pow(0.8, envelope2.attack);
         } else {
             envelope2.state = ENV_STATE_DECAY;
         }
@@ -492,6 +515,9 @@ void minaton_synth::dca_update()
     if (envelope2.state == ENV_STATE_RELEASE) {
         if (envelope2.level > 0) {
             envelope2.level -= pow(0.8, envelope2.release);
+            if (envelope2.level < 0) {
+                envelope2.level = 0;
+            }
         } else {
             envelope2.state = ENV_STATE_DORMANT;
             envelope2.level = 0;
