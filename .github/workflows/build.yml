@@ -1,80 +1,164 @@
-# Cetone Synth Series - GitHub Workflow
-# Based on Wasted Audio workflow (https://github.com/Wasted-Audio/wstd-eq/blob/master/.github/workflows/build.yml)
+# Cetone Series - GitHub Workflow
+# Copyright (c) 2026 AnClark Liu <clarklaw4701@qq.com>
+# SPDX-License-Identifier: MIT
+#
+# ----------- Usages About This Workflow -----------
+# This Workflow supports running on both GitHub Actions and Act (https://github.com/nektos/act). Act is useful for
+# local CI testing and builds.
+#
+# To run linux-x86_64/win64 targets on Act, you need to specify the following arguments:
+#     -P ubuntu-24.04=ghcr.io/catthehacker/ubuntu:act-24.04 --artifact-server-path=<ARTIFACT OUTPUT DIR>
+#
+# If you own a Apple Silicon Mac, you can run macos-universal target directly on your macOS, following the steps below:
+#     1. Install XCode command line tools via `xcode-select --install`
+#     2. Install the following dependencies via Homebrew or MacPorts:
+#            cmake  ccache  ninja  sdl2
+#     3. Run Act:
+#            act -j macos-universal -P macos-latest=-self-hosted --artifact-server-path=<ARTIFACT OUTPUT DIR>
+#        It will build directly under the repository folder, using the tools on your macOS host.
 
 name: build
 
 on:
   push:
 
+env:
+  DEPS_LINUX: ccache cmake ninja-build libgl1-mesa-dev
+  DEPS_WINDOWS: ccache cmake ninja-build binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64
+
 jobs:
   linux-x86_64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04    # See https://github.com/actions/runner-images for available Ubuntu images.
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-      - name: Install dependencies
+
+      - name: apt update
+        run: sudo apt-get update
+      - name: Generate apt cache key
+        if: ${{ env.ACT }}
+        id: aptkey
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq libgl1-mesa-dev
+          sudo apt-get install --print-uris -y ${DEPS_LINUX} \
+            | sha256sum | cut -d' ' -f1
+      - name: Restore apt cache
+        if: ${{ env.ACT }}
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.os }}-${{ steps.aptkey.outputs.hash }}
+          restore-keys: |
+            apt-${{ runner.os }}-
+      - name: Install dependencies (for Act, including ccache)
+        if: ${{ env.ACT }}
+        run: |
+          # Prevent Docker from cleaning up apt cache
+          sudo rm -f /etc/apt/apt.conf.d/docker-clean
+          sudo apt-get install -y ${DEPS_LINUX}
+          # Cleanup before saving, avoiding saving unrelevant files
+          sudo rm -rf /var/cache/apt/archives/partial/* \
+                 /var/cache/apt/archives/lock
+      - name: Install dependencies (for GitHub Actions, including ccache)
+        if: ${{ !env.ACT }}
+        run: |
+          sudo apt-get install -y ${DEPS_LINUX}
+
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      #
+      # CCACHE_DIR:         Specify a fixed ccache directory.
+      # CCACHE_NOHASHDIR=1: Do not record full path; use relative path instead. Relative path is consistent
+      #                     among runs.
+      # CCACHE_BASEDIR:     Specify working directory. CCACHE_NOHASHDIR depends on this.
+      #
+      # WARNING: Do NOT set CCACHE_DIR to the real working ccache dir, since Act may clean it every time!
+      - name: Set up isolated ccache for CI
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-linux
+          max-size: 2G
+          update-package-index: false    # NOTE: ccache is installed before. No need to install by ccache-action.
 
       - name: Build plugins
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          make -C build -j $(nproc)
-
-      - name: Set sha8 (non-release)
-        if: startsWith(github.ref, 'refs/tags/') != true
-        id: slug1
-        run: echo "action_tag=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
-      - name: Set tag (release)
-        if: startsWith(github.ref, 'refs/tags/')
-        id: slug2
-        run: echo "action_tag=$(echo ${{ github.ref_name }})" >> $GITHUB_ENV
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build build --parallel
 
       - name: Pack binaries
+        id: pack    # Must specify a step ID so that its output can be accessed
         run: |
-          cd build
-          mv bin ${{ github.event.repository.name }}
-          tar -c -h  -z -f ${{ github.event.repository.name }}-linux-x86_64-${{ github.event.pull_request.number || env.action_tag }}.tar.gz ${{ github.event.repository.name }}/
+          cmake --build build --target package
+          # Extract generated filename to step output (which will be consumed by upload-artifact@v4)
+          pkg=$(ls -1 build/*.zip | head -n1)
+          echo "artifact=$(basename "$pkg" .zip)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-linux-x86_64-${{ github.event.pull_request.number || env.action_tag }}
+          name: ${{ steps.pack.outputs.artifact }}   # Consume the filename generated by "Pack binaries"
           path: |
-            build/*.tar.gz
-
-      - uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*.tar.gz
+            build/*.zip
 
   win64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04    # See https://github.com/actions/runner-images for available Ubuntu images.
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: apt update
+        run: sudo apt-get update
+      - name: Generate apt cache key
+        if: ${{ env.ACT }}
+        id: aptkey
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -yqq binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 mingw-w64 wine-stable
-      - name: Deal with File does not contain a valid CIL image error
+          sudo apt-get install --print-uris -y ${DEPS_WINDOWS} \
+            | sha256sum | cut -d' ' -f1
+      - name: Restore apt cache
+        if: ${{ env.ACT }}
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.os }}-${{ github.job }}-${{ steps.aptkey.outputs.hash }}    # Distinguish from linux-x86_64's runner cache
+          restore-keys: |
+            apt-${{ runner.os }}-${{ github.job }}-
+      - name: Install dependencies (for Act, including ccache)
+        if: ${{ env.ACT }}
         run: |
-          # See: https://github.com/orgs/community/discussions/64826 for more details.
-          sudo apt remove --purge --auto-remove mono-runtime
-          sudo apt-get install wine-binfmt
+          # Prevent Docker from cleaning up apt cache
+          sudo rm -f /etc/apt/apt.conf.d/docker-clean
+          sudo apt-get install -y ${DEPS_WINDOWS}
+          # Cleanup before saving, avoiding saving unrelevant files
+          sudo rm -rf /var/cache/apt/archives/partial/* \
+                 /var/cache/apt/archives/lock
+      - name: Install dependencies (for GitHub Actions, including ccache)
+        if: ${{ !env.ACT }}
+        run: |
+          sudo apt-get install -y ${DEPS_WINDOWS}
+
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      - name: Set up isolated ccache for CI
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-win64
+          max-size: 2G
+          update-package-index: false
 
       - name: Build win64 cross-compiled plugins
         env:
@@ -88,40 +172,29 @@ jobs:
           echo "SET(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)" >> windows-cross-build.cmake
           echo "SET(CMAKE_RC_COMPILER /usr/bin/x86_64-w64-mingw32-windres)" >> windows-cross-build.cmake
           echo "SET(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32/)" >> windows-cross-build.cmake
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=windows-cross-build.cmake
-          make -C build -j $(nproc)
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=windows-cross-build.cmake \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build build --parallel
 
-      - name: Set sha8 (non-release)
-        if: startsWith(github.ref, 'refs/tags/') != true
-        id: slug1
-        run: echo "action_tag=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
-      - name: Set tag (release)
-        if: startsWith(github.ref, 'refs/tags/')
-        id: slug2
-        run: echo "action_tag=$(echo ${{ github.ref_name }})" >> $GITHUB_ENV
       - name: Pack binaries
+        id: pack    # Must specify a step ID so that its output can be accessed
         run: |
-          cd build
-          mv bin ${{ github.event.repository.name }}
-          tar -c -h -z -f ${{ github.event.repository.name }}-win64-${{ github.event.pull_request.number || env.action_tag }}.tar.gz ${{ github.event.repository.name }}/
+          cmake --build build --target package
+          # Extract generated filename to step output (which will be consumed by upload-artifact@v4)
+          pkg=$(ls -1 build/*.zip | head -n1)
+          echo "artifact=$(basename "$pkg" .zip)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-win64-${{ github.event.pull_request.number || env.action_tag }}
+          name: ${{ steps.pack.outputs.artifact }}   # Consume the filename generated by "Pack binaries"
           path: |
-            build/*.tar.gz
+            build/*.zip
 
-      - uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*.tar.gz
-
-  macos-universal:
-    runs-on: macos-14
+  macos-arm64:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -131,37 +204,67 @@ jobs:
         run: |
           echo "No need to install dependencies on macOS."
 
-      - name: Build macOS universal plugins
-        env:
-          CFLAGS: -arch x86_64 -arch arm64 -mtune=generic -msse -msse2
-          CXXFLAGS: -arch x86_64 -arch arm64 -mtune=generic -msse -msse2
-          LDFLAGS: -arch x86_64 -arch arm64
+      # Pin CCACHE_DIR so ccache works with local Act runs.
+      - name: Set up isolated ccache for CI
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          make -C build NOOPT=true -j $(sysctl -n hw.logicalcpu)
-          cd build && ../dpf/utils/package-osx-bundles.sh
+          echo "CCACHE_DIR=$HOME/.cache/ccache-ci/${GITHUB_REPOSITORY#*/}" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          echo "CCACHE_NOHASHDIR=1" >> "$GITHUB_ENV"
 
-      - name: Set sha8 (non-release)
-        if: startsWith(github.ref, 'refs/tags/') != true
-        id: slug1
-        run: echo "action_tag=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
-      - name: Set tag (release)
-        if: startsWith(github.ref, 'refs/tags/')
-        id: slug2
-        run: echo "action_tag=$(echo ${{ github.ref_name }})" >> $GITHUB_ENV
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-macos
+          max-size: 2G
+
+      - name: Build macOS arm64 plugins
+        env:
+          CFLAGS: -arch arm64
+          CXXFLAGS: -arch arm64
+          LDFLAGS: -arch arm64
+        run: |
+          cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build build --parallel
+
+      - name: Pack binaries
+        id: pack    # Must specify a step ID so that its output can be accessed
+        run: |
+          cmake --build build --target package
+          # Extract generated filename to step output (which will be consumed by upload-artifact@v4)
+          pkg=$(ls -1 build/*.pkg | head -n1)
+          echo "artifact=$(basename "$pkg" .pkg)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-macOS-universal-${{ github.event.pull_request.number || env.action_tag }}
+          name: ${{ steps.pack.outputs.artifact }}   # Consume the filename generated by "Pack binaries"
           path: |
-            build/*-macOS.pkg
+            build/*.pkg
 
-      - uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+  # Create exactly ONE GitHub Release for the tag, after ALL builds succeed.
+  # Doing this in a single dedicated job (instead of inside each build job)
+  # avoids parallel jobs racing to create the same release.
+  release:
+    needs: [linux-x86_64, win64, macos-arm64]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write    # Required for creating a release with the default GITHUB_TOKEN
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true    # Gather all artifacts into a single directory
+
+      - name: Create draft release and upload packages
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          draft: false
+          draft: true
           prerelease: false
-      #     files: |
-      #       WSTD_DL3Y/*-macOS.pkg
+          files: dist/*
+          fail_on_unmatched_files: true
