@@ -222,12 +222,12 @@ void MinatonPlugin::run(const float** inputs, float** outputs, uint32_t frames, 
 void MinatonPlugin::bufferSizeChanged(uint32_t newBufferSize)
 {
     if (fBufferSize != newBufferSize) {
-        d_stderr("[DSP] Buffer size changed: from %d to %d", fBufferSize, newBufferSize);
+        d_stderr("[DSP] Buffer size changed: from %f to %f", fBufferSize, newBufferSize);
 
         fBufferSize = newBufferSize;
         reinitResampler(fBufferSize, fSampleRate);
     } else {
-        d_stderr("[DSP] Buffer size changed: same as current value, %d", fBufferSize);
+        d_stderr("[DSP] Buffer size changed: same as current value, %f", fBufferSize);
     }
 }
 
