@@ -46,7 +46,10 @@ else ()
     set (ENABLE_BOW_DOCS OFF CACHE BOOL "")
     set (ENABLE_CPACK OFF CACHE BOOL "")
 
-    add_subdirectory (vendor/libsndfile)
+    # EXCLUDE_FROM_ALL: ignore libsndfile's own install() rules, so its
+    # libraries/headers/manpages won't leak into our CPack packages (ZIP/pkg).
+    # The sndfile target is still built via target_link_libraries() dependency.
+    add_subdirectory (vendor/libsndfile EXCLUDE_FROM_ALL)
 
     # Need this to fix linker errors around Glibc
     target_compile_options (sndfile PRIVATE -fPIC)
