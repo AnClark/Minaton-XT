@@ -101,13 +101,7 @@ add_custom_target (generate_waves DEPENDS ${GENERATED_WAVE_HEADER})
 
 # Only build standalone (JACK) application if JACK is installed on system
 if (BUILD_JACK_STANDALONE)
-    pkg_check_modules (JACK IMPORTED_TARGET REQUIRED jack)
-    if (JACK_FOUND)
-        message (STATUS "JACK found. Will build standalone application.")
-        set (JACK_TARGET jack)
-    else ()
-        message (STATUS "JACK not found. Skipping standalone application.")
-    endif ()
+    set (JACK_TARGET jack)
 endif ()
 
 dpf_add_plugin (${PROJECT_NAME}
