@@ -7,7 +7,7 @@ START_NAMESPACE_DISTRHO
 namespace Art = MinatonArtwork;
 
 MinatonUI::MinatonUI()
-    : UI(Art::backWidth, Art::backHeight)
+    : UI(Art::backWidth, Art::backHeight, kInternalScalingMatchingHost)
     , fImgBackground(Art::backData, Art::backWidth, Art::backHeight, kImageFormatBGRA)
     , fKnobImage(Art::newknobData, Art::newknobWidth, Art::newknobHeight, kImageFormatBGRA)
     , fVolumeKnobImage(Art::volknobData, Art::volknobWidth, Art::volknobWidth, kImageFormatBGRA)

@@ -3,4 +3,4 @@
 	url = https://github.com/DISTRHO/DPF.git
 [submodule "vendor/dpf-widgets"]
 	path = vendor/dpf-widgets
-	url = https://github.com/DISTRHO/DPF-Widgets.git
+	url = https://github.com/AnClark/Cetone-DPF-Widgets.git
