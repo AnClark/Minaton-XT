@@ -16,25 +16,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+cmake_minimum_required(VERSION 3.20)
+project (factory_bank_to_c LANGUAGES C CXX)
+
+set (BANK_CODE_NAME "" CACHE STRING "factory_bank_to_c: Specify the name of generated bank code")
+set (BANK_CONFIG_FILE_EXPORT_DIR "" CACHE STRING "factory_bank_to_c: Specify where to put bank code config file")
+
 # Build the factory bank converter
-add_executable(factory_bank_to_c
+add_executable(${PROJECT_NAME}
     binary_to_compressed_c.cpp
     main.cpp
 )
-target_include_directories(factory_bank_to_c PRIVATE .)
+target_include_directories(${PROJECT_NAME} PRIVATE .)
 
 # Fallback to pre-C++20 struct definition syntax on MSVC
 if(MSVC)
-    target_compile_definitions(factory_bank_to_c PRIVATE -DMSVC_COMPATIBILITY)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DMSVC_COMPATIBILITY)
 endif()
 
 # Statically link on Windows and Win32 cross-build
 # This prevents "libgcc/libstdc++ not found" error on most conditions
 if(WIN32 AND NOT MSVC)
-    target_link_options(factory_bank_to_c PRIVATE -static)
+    target_link_options(${PROJECT_NAME} PRIVATE -static)
 endif()
 
-# Include config file for setting output code name
+# Generate config file for setting output code name
 # NOTICE: You must set variable BANK_CODE_NAME before add_subdirectory(<this directory>).
-configure_file (./fb2c_config.h.in ${PROJECT_BINARY_DIR}/fb2c_config.h)
-target_include_directories (factory_bank_to_c PRIVATE ${PROJECT_BINARY_DIR})
+configure_file (./fb2c_config.h.in ${BANK_CONFIG_FILE_EXPORT_DIR}/fb2c_config.h)
+target_include_directories (${PROJECT_NAME} PRIVATE ${BANK_CONFIG_FILE_EXPORT_DIR})
