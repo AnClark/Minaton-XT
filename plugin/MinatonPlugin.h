@@ -31,14 +31,18 @@ class MinatonPlugin : public Plugin {
     double fBufferSize = getBufferSize();
     std::unique_ptr<minaton_synth_dpf> fSynthesizer = std::make_unique<minaton_synth_dpf>();
 
-    // Minaton note key data
-    unsigned char m_key;
-    double m_rate;
-    uint32_t m_period;
-    uint32_t m_counter;
-    int last_note;
-    int control_delay;
-    unsigned char m_velocity;
+    // Minaton note key data (note tracking state).
+    // `last_note` MUST start at -1 ("no key active"):
+    // _processMidi() gates envelope retriggering and DCO phase resets on it.
+    // Leaving it uninitialized is undefined behavior and could make legato
+    // mode swallow the very first note-on.
+    unsigned char m_key { 0 };
+    double m_rate { 0.0f };
+    uint32_t m_period { 0 };
+    uint32_t m_counter { 0 };
+    int last_note { -1 };
+    int control_delay { 0 };
+    unsigned char m_velocity { 127 };
 
     // Resampler data
     SRC_STATE* m_srcMaster_L;
