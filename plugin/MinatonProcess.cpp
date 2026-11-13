@@ -158,9 +158,6 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
 
         // note on
         if (status == 0x90 && value > 0) {
-            // Reset DCO audio frame position to avoid unexpected phase distortion
-            fSynthesizer->reset_dco_out_position();
-
 #if 0
             d_stderr("Current key on: %d", key);
 #else
@@ -168,10 +165,19 @@ void MinatonPlugin::_processMidi(const uint8_t* data, const uint32_t size)
             m_period = m_rate * 4.0 / 440.0f; // LV2::key2hz(m_key);
             m_velocity = (unsigned char)value;
 
-            if (last_note == -1 || fSynthesizer->get_legato() == 0) {
+            // Legato transition: a previous note is still held AND legato is
+            // enabled. Keep envelopes AND oscillator/LFO phase continuous.
+            // Resetting the DCO position unconditionally gave every note a
+            // "restart" transient regardless of the Legato switch, masking it.
+            const bool legato_transition = (last_note != -1 && fSynthesizer->get_legato() != 0);
+
+            if (!legato_transition) {
+                // Reset DCO audio frame position to avoid unexpected phase distortion
+                fSynthesizer->reset_dco_out_position();
                 fSynthesizer->trigger_envelope1();
                 fSynthesizer->trigger_envelope2();
             }
+
             fSynthesizer->set_tuning(m_key - 38);
             last_note = m_key;
 #endif
