@@ -1,6 +1,6 @@
 [submodule "dpf"]
 	path = dpf
-	url = https://github.com/DISTRHO/DPF.git
+	url = https://github.com/AnClark/Cetone-DPF-Mod.git
 [submodule "vendor/dpf-widgets"]
 	path = vendor/dpf-widgets
 	url = https://github.com/AnClark/Cetone-DPF-Widgets.git
